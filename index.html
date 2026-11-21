@@ -240,6 +240,16 @@
   .shop-rarity{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ui-accent);margin-bottom:5px}
   .theme-preview{height:28px;border-radius:7px;border:1px solid #ffffff3b;margin-bottom:8px}
   @media(max-width:700px){.binding-grid{grid-template-columns:1fr}.setting-row{align-items:flex-start;flex-direction:column}.setting-row input[type=range],.setting-row select{width:100%}.pause-nav{overflow:auto;max-height:65vh}}
+
+  .mp-chat{position:absolute;z-index:16;right:18px;bottom:22px;width:min(340px,calc(100vw - 36px));font-family:inherit}
+  .mp-chat-toggle{width:100%;padding:9px 13px;background:#14252be8;border:1px solid #83b3a566;border-radius:9px;color:#e8f4eb;font-weight:900;letter-spacing:.08em;text-align:left;cursor:pointer}
+  .mp-chat-panel{margin-top:8px;background:#0a1515f2;border:1px solid #80a99b66;border-radius:12px;padding:10px;box-shadow:0 14px 42px #0009}
+  .mp-chat-panel header{display:flex;justify-content:space-between;align-items:center;color:#dff1e6;font-size:11px;letter-spacing:.1em;margin-bottom:8px}
+  .mp-chat-panel header button{padding:4px 9px;min-width:28px}.mp-chat-messages{height:170px;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:7px;background:#081012;border-radius:8px;color:#d9e5df;font-size:12px}
+  .mp-chat-line{overflow-wrap:anywhere}.mp-chat-line.system{color:#c9ef9f;font-style:italic}.mp-chat-line b{color:#a8dff2}#mpChatForm{display:flex;gap:6px;margin-top:8px}#mpChatInput{flex:1;min-width:0;background:#18282d;border:1px solid #48626a;border-radius:7px;padding:9px;color:#eef6f0;font:inherit}#mpChatForm button{padding:8px 12px}.mp-chat-panel small{display:block;color:#789096;font-size:9px;margin-top:6px}
+  .story-panel{max-width:520px;text-align:left;background:linear-gradient(145deg,#192b2b,#10191e);border-color:#a5c4a166}.story-panel h2{color:#e7f1d5}.story-panel p{font-size:15px;line-height:1.75;color:#cfddd5}
+  @media(max-width:700px){.mp-chat{right:8px;bottom:8px;width:min(300px,calc(100vw - 16px))}.mp-chat-messages{height:130px}}
+
 </style>
 </head>
 <body>
@@ -252,6 +262,8 @@
     <div class="stage">
       <canvas id="game" width="960" height="640" aria-label="Flipping Is Hard 2D platform game"></canvas>
       <div class="narrator-caption" id="narratorCaption" aria-live="polite"><strong>THE NARRATOR</strong><span id="narratorCaptionText"></span></div>
+      <div class="mp-chat" id="mpChat" hidden><button class="mp-chat-toggle" id="mpChatToggle" type="button">CHAT · ENTER</button><section class="mp-chat-panel" id="mpChatPanel" hidden aria-label="Multiplayer chat"><header><strong>ROOM CHAT</strong><button type="button" id="mpChatClose" class="secondary">×</button></header><div class="mp-chat-messages" id="mpChatMessages" aria-live="polite"></div><form id="mpChatForm"><input id="mpChatInput" maxlength="140" autocomplete="off" placeholder="Message your team…"><button class="primary" type="submit">Send</button></form><small>Enter opens chat · 140 characters · Be nice to your fellow Flippys.</small></section></div>
+      <div class="overlay hidden" id="storyOverlay" aria-label="Story memory"><div class="panel story-panel"><div class="eyebrow">A MEMORY FROM BEFORE THE DRAIN</div><h2 id="storyTitle">A little memory</h2><p id="storyText"></p><div class="button-row"><button class="primary" id="storyContinueButton">Keep climbing</button></div><div class="tiny">OPTIONAL STORY · Press Enter to continue</div></div></div>
       <div class="overlay" id="startOverlay">
         <div class="title-screen">
           <section class="title-left">
@@ -260,7 +272,7 @@
             <div class="title-brand">FLIPPING<br>IS HARD <span>2D</span></div>
             <p class="title-sub">Jeff slipped on a banana peel. Flippy went flying into the storm drains. Climb, flip, bounce and scramble through the Trashlands to find your way back.</p>
             <p class="title-story">Explore a huge connected world, help its forgotten residents, discover hidden trophies, collect scrap and customise your little brick phone. It is a precision climb. Falling is part of the story.</p>
-            <div class="title-stats"><span>13 REGIONS</span><span id="npcMissionStat">34 NPC MISSIONS</span><span id="trophyTotalStat">48 TROPHIES</span><span>3 HOME MEMORIES</span></div>
+            <div class="title-stats"><span>13 REGIONS</span><span id="npcMissionStat">34 NPCs · 7 STORIES</span><span id="trophyTotalStat">75 TROPHIES</span><span>3 HOME MEMORIES</span></div>
           </section>
           <section class="title-right">
             <span class="menu-label">START YOUR ADVENTURE</span>
@@ -311,7 +323,7 @@
               <div class="controls-grid">
                 <span><b>A / D</b><br>Rotate with momentum</span><span><b>Space</b><br>Vibration jump · buffered</span>
                 <span><b>E</b><br>Talk / accept mission</span><span><b>Clean landings</b><br>Land upright with low spin for scrap bonuses</span><span><b>Jump timing</b><br>Short grace window after leaving a ledge</span><span><b>Q</b><br>Piton tether</span>
-                <span><b>H</b><br>Help Beam</span><span><b>Esc / P</b><br>Pause menu</span>
+                <span><b>H</b><br>Help Beam</span><span><b>V</b><br>Request rescue</span><span><b>Enter</b><br>Multiplayer chat</span><span><b>Esc / P</b><br>Pause menu</span>
                 <span><b>G</b><br>Checkpoint menu</span><span><b>R / T</b><br>Restart / recover</span>
                 <span><b>F</b><br>Fullscreen</span><span><b>J</b><br>Trophy collection</span>
               </div>
@@ -332,6 +344,10 @@
               <button class="active" data-pause-tab="overview">▦ Overview</button>
               <button data-pause-tab="checkpoints">◎ Checkpoints</button>
               <button data-pause-tab="missions">✦ Missions</button>
+              <button data-pause-tab="questlines">▤ Questlines</button>
+              <button data-pause-tab="secrets">⌕ Secrets</button>
+              <button data-pause-tab="trials">⚑ Regional Trials</button>
+              <button data-pause-tab="gear">⚒ Field Gear</button>
               <button data-pause-tab="trophies">★ Trophies</button>
               <button data-pause-tab="shop">◇ Scrap Shop</button>
               <button data-pause-tab="skins">◈ Phone Skins</button>
@@ -485,7 +501,7 @@
   let lastFrame = 0, cameraX = 0, cameraY = 0, shake = 0, particles = [];
   let jumpWasDown = false;
   const keys = Object.create(null);
-  const DEFAULT_BINDINGS={rotateLeft:'KeyA',rotateRight:'KeyD',jump:'Space',interact:'KeyE',tether:'KeyQ',helpBeam:'KeyH',pause:'Escape',checkpoints:'KeyG',trophies:'KeyJ',recover:'KeyT',restart:'KeyR',fullscreen:'KeyF'};
+  const DEFAULT_BINDINGS={rotateLeft:'KeyA',rotateRight:'KeyD',jump:'Space',interact:'KeyE',tether:'KeyQ',helpBeam:'KeyH',requestRescue:'KeyV',pause:'Escape',checkpoints:'KeyG',trophies:'KeyJ',recover:'KeyT',restart:'KeyR',fullscreen:'KeyF'};
   let keyBindings={...DEFAULT_BINDINGS}, rebindingAction='';
   let gameSettings={masterVolume:72,sfxVolume:82,musicVolume:64,musicEnabled:true,musicChangeMinutes:5,narratorMode:'balanced',muted:false,uiTheme:'trashlands',particles:true,cameraFollow:5.5,hud:{status:true,map:true,progress:true,prompts:true,toasts:true}};
   let audioContext=null;
@@ -810,6 +826,31 @@
     const roomSelect=document.getElementById('roomDifficultySelect');if(roomSelect)roomSelect.value=difficultyId;
   }
 
+
+  // Hidden side rooms are real collision spaces placed in quiet outer-world pockets.
+  // E opens the entrance when Flippy reaches the little shimmer doorway.
+  const secretRooms=[];
+  for(let z=0;z<zoneInfo.length;z+=2){
+    const doorPlatform=branchTargets[z].right[1];
+    const baseX=4930+(secretRooms.length%3)*430;
+    const bottom=zoneInfo[z].bottom;
+    const roomPlatforms=[];
+    const steps=[{x:baseX,y:bottom+850,w:190},{x:baseX+205,y:bottom+700,w:145},{x:baseX+80,y:bottom+550,w:145},{x:baseX+260,y:bottom+400,w:145},{x:baseX+145,y:bottom+250,w:190}];
+    steps.forEach((st,k)=>roomPlatforms.push(addPlatform(st.x,st.y,st.w,zoneInfo[z].kind,{h:18,oneWay:true,label:k===4?'HIDDEN KEEPSAKE':''})));
+    secretRooms.push({id:'secret-room-'+z,zone:z,name:['Pipe Echo Chamber','Box Fort Archive','Swing Set Hideaway','Sugar Cellar','Lost Toy Observatory','Signal Vault','Icebox Nook'][secretRooms.length],doorPlatform,doorX:doorPlatform.x+doorPlatform.w/2,doorY:doorPlatform.y-24,returnX:doorPlatform.x+doorPlatform.w/2,returnY:doorPlatform.y-43,platforms:roomPlatforms,relic:{id:'secret-relic-'+z,x:roomPlatforms[4].x+roomPlatforms[4].w/2,y:roomPlatforms[4].y-46},visited:false});
+  }
+  let insideSecretRoom='';
+  const collectedSecretRelics=new Set();
+  const collectedStoryFragments=new Set();
+  const storyFragments=[
+    {id:'story-banana',zone:0,x:routePlatforms[0][6].x+routePlatforms[0][6].w/2,y:routePlatforms[0][6].y-53,title:'The Banana Peel',text:'A tiny memory returns: a bright kitchen, a sudden slip, and the sound of a phone skidding away. Jeff was reaching for Flippy before the drain swallowed the little signal.'},
+    {id:'story-first-ringtone',zone:2,x:routePlatforms[2][6].x+routePlatforms[2][6].w/2,y:routePlatforms[2][6].y-53,title:'The First Ringtone',text:'A familiar melody echoes through the Playground. Flippy remembers being in a pocket, beside Jeff, while the world was still the right way up.'},
+    {id:'story-toybox',zone:4,x:branchTargets[4].left[2].x+branchTargets[4].left[2].w/2,y:branchTargets[4].left[2].y-54,title:'A Borrowed Toy',text:'The toys remember being played with. They remember laughter, carpet, and being carefully put away. Most of all, they remember that someone once looked after them.'},
+    {id:'story-attic',zone:10,x:routePlatforms[10][5].x+routePlatforms[10][5].w/2,y:routePlatforms[10][5].y-55,title:'The House Above',text:'The attic smells of dust and summer. A postcard shows Jeff standing outside the house. Flippy recognises the doorstep.'},
+    {id:'story-postcard',zone:12,x:routePlatforms[12][5].x+routePlatforms[12][5].w/2,y:routePlatforms[12][5].y-54,title:'Almost Home',text:'The street is close now. Flippy can almost hear Jeff calling. The little screen glows with one last hopeful signal.'}
+  ];
+
+
   const checkpoints=platforms.filter(p=>p.checkpoint);
   const checkpointRecords=[
     {id:'storm-drain',name:"Flippy's Landing · Storm Drain",platform:platforms.indexOf(startPlatform),x:START_X,y:START_PLATFORM_Y}
@@ -892,7 +933,8 @@
     const homePlatform=resolveNpcPlatform(z,where);
     const branch=branchTargets[z][branchSide];
     const questId='trashlands_'+id;
-    const npc={id,name,title,visual,zone:z,x:homePlatform.x+homePlatform.w/2,y:homePlatform.y-34,
+    const npc={id,name,title,visual,zone:z,x:homePlatform.x+homePlatform.w/2,y:homePlatform.y-34,baseX:homePlatform.x+homePlatform.w/2,homePlatform,
+      patrolRadius:Math.min(44,Math.max(12,homePlatform.w*.16)),patrolSpeed:.35+(i%5)*.09,patrolPhase:i*.91,activityIndex:i%4,activityTimer:6+(i%6)*2,activity:'patrol',socialTimer:11+(i%5)*3,mood:'idle',bubble:'',bubbleTimer:0,chatterTimer:8+(i%7)*2,
       quest:{id:questId,title,description,type:(type==='land'||['soldier','plonk','microwaver','fred','gamedude','carl','eggo','princess','greg'].includes(id)?'land':type),target:{x:branch[3].x+branch[3].w/2,y:branch[3].y-35,platform:branch[3]},
         trophy,cosmetic,items:[]},colour:['#efc0a2','#9cb86f','#ee9fc1','#bc956c','#91cce8','#a8a4d7'][i%6]};
     if(type==='collect'){
@@ -913,6 +955,43 @@
     'Mint Condition':{shell:'#4a8b78',screen:'#c2ffdf'},'Mono Chrome':{shell:'#50565b',screen:'#f0f1e9'},
     'Attic Velvet':{shell:'#70546f',screen:'#ead0ed'},'Arcade Pop':{shell:'#294b83',screen:'#71f4ff'},'Postcard Blue':{shell:'#537f9d',screen:'#ffe3a0'},'Memory Mosaic':{shell:'#9b855c',screen:'#f5e6ad'},'Homecoming Gold':{shell:'#b08a45',screen:'#fff0a8'},'Drain Rat Rust':{shell:'#805648',screen:'#d5a27a'},'Folded Flap':{shell:'#a88a5c',screen:'#eee0b6'},'Swing Set Silver':{shell:'#85969e',screen:'#d8f4ff'},'Sugar Glaze':{shell:'#c87d9e',screen:'#ffe0ea'},'Wind-Up Copper':{shell:'#9b6847',screen:'#e8bf83'},'Static Bloom':{shell:'#514b9a',screen:'#b9adff'},'Freezer Mint':{shell:'#548b8c',screen:'#cbfff0'},'Laundry Lavender':{shell:'#8272a8',screen:'#e3d7ff'},'Hazard Stripe':{shell:'#c18a32',screen:'#fff0a4'},'Lift Signal Red':{shell:'#a44844',screen:'#ffc5a1'},'Dusty Glow':{shell:'#7d7053',screen:'#f4dea0'},'High Score Blue':{shell:'#345f94',screen:'#7feaff'},'Porchlight Amber':{shell:'#9d6c3c',screen:'#ffe0a0'}
   });
+  const questlineDefs=[];
+  const questlineSpecs=[
+    ['ratchet','The Great Drain Repair',0,'Repair Ratchet’s leaking pipe network.','Drain Rat Rust',145,'collect','reach'],
+    ['boxy','The Fort Expansion Plan',1,'Help Boxy prove that the fort can support one more floor.','Folded Flap',155,'collect','land'],
+    ['squeaks','The Playground Safety Audit',2,'Inspect the old swing rig before the next storm.','Swing Set Silver',165,'reach','land'],
+    ['crumb','The Missing Recipe',3,'Recover Crumb’s family recipe and bake one last gumdrop cake.','Sugar Glaze',175,'collect','reach'],
+    ['pete','The Last Safe Shift',8,'Help Pete shut down the compactor before the night shift.','Hazard Stripe',190,'land','reach'],
+    ['cabby','The Arcade Grand Final',11,'Restore the arcade cabinet and set a score worthy of a legend.','High Score Blue',210,'collect','land'],
+    ['postie','A Letter for Jeff',12,'Deliver a very important letter to the right front door.','Porchlight Amber',230,'reach','collect']
+  ];
+  for(const [npcId,title,zone,desc,cosmetic,reward,firstType,secondType] of questlineSpecs){
+    const npc=npcs.find(n=>n.id===npcId);if(!npc)continue;
+    const route=routePlatforms[zone],branch=branchTargets[zone];
+    const itemSpots=[branch.left[0],route[2],branch.right[2]];
+    const items=itemSpots.map((pl,k)=>({id:`ql_${npcId}_${k}`,x:pl.x+pl.w/2+(k-1)*12,y:pl.y-50}));
+    questlineDefs.push({id:`storyline_${npcId}`,npcId,title,description:desc,zone,cosmetic,reward,items,stages:[
+      {type:firstType,label:firstType==='collect'?'Find the three missing pieces.':firstType==='land'?'Make a careful landing on the marked work platform.':'Reach the far lookout.',items:firstType==='collect'?items:undefined,platform:firstType==='land'?branch.left[1]:undefined,target:firstType==='reach'?{x:route[6].x+route[6].w/2,y:route[6].y-35}:undefined},
+      {type:secondType,label:secondType==='collect'?'Gather the remaining parts from the side route.':secondType==='land'?'Land on the final marked platform.':'Reach the upper worksite.',items:secondType==='collect'?items:undefined,platform:secondType==='land'?route[6]:undefined,target:secondType==='reach'?{x:branch.right[3].x+branch.right[3].w/2,y:branch.right[3].y-35}:undefined},
+      {type:'talk',label:`Return to ${npc.name} and report back.`}
+    ]});
+  }
+  const questlineProgress={};
+  let activeQuestlineId='';
+  const collectedQuestlineItems=new Set();
+  const trialMedals={};
+  let activeRegionalTrial=null;
+  let totalScrapEarned=0,totalScrapSpent=0;
+  function awardScrap(amount){const n=Math.max(0,Math.floor(Number(amount)||0));scrapChips+=n;totalScrapEarned+=n;return n;}
+  function spendScrap(amount){const n=Math.max(0,Math.floor(Number(amount)||0));if(scrapChips<n)return false;scrapChips-=n;totalScrapSpent+=n;return true;}
+  const ownedGear=new Set();
+  const fieldGear=[
+    {id:'scrap-magnet',name:'Scrap Magnet',price:220,desc:'Increases scrap pickup range by 45%.',icon:'✧'},
+    {id:'lucky-socket',name:'Lucky Socket',price:320,desc:'Adds +2 scrap to regular shard pickups.',icon:'◎'},
+    {id:'battery-sleeve',name:'Battery Sleeve',price:260,desc:'Battery pickups restore 25% more charge.',icon:'▣'},
+    {id:'landing-grip',name:'Landing Grip',price:280,desc:'Makes clean landing rewards slightly easier to earn.',icon:'⌁'}
+  ];
+
   const shopPrices={
     'Patchwork Pink':85,'Army Green':85,'Pink Pixel':95,'Woodgrain':75,'Signal Blue':95,'Microwave Chrome':130,
     'Gingerbread':75,'Gumdrop':90,'Handheld Green':110,'Web Weaver':100,'Circuit Teal':120,'Glitch Purple':120,
@@ -953,6 +1032,15 @@
       if(Array.isArray(saved.checkpoints))saved.checkpoints.forEach(v=>{if(checkpointById.has(v))unlockedCheckpointIds.add(v);});
       if(Array.isArray(saved.foundTrophies))saved.foundTrophies.forEach(v=>{if(findableTrophies.some(t=>t.id===v))collectedFoundTrophies.add(v);});
       if(Array.isArray(saved.visitedZones))saved.visitedZones.forEach(v=>{if(Number.isInteger(v)&&v>=0&&v<zoneInfo.length)visitedZones.add(v);});
+      if(saved.questlines&&typeof saved.questlines==='object')for(const line of questlineDefs){const v=saved.questlines[line.id];if(v&&typeof v==='object')questlineProgress[line.id]={stage:clamp(Math.floor(Number(v.stage)||0),0,line.stages.length),completed:!!v.completed};}
+      if(typeof saved.activeQuestline==='string'&&questlineDefs.some(q=>q.id===saved.activeQuestline))activeQuestlineId=saved.activeQuestline;
+      if(Array.isArray(saved.questlineItems))saved.questlineItems.forEach(v=>{if(questlineDefs.some(q=>q.items.some(i=>i.id===v)))collectedQuestlineItems.add(v);});
+      if(Array.isArray(saved.secretRelics))saved.secretRelics.forEach(v=>{if(secretRooms.some(r=>r.relic.id===v))collectedSecretRelics.add(v);});
+      if(Array.isArray(saved.secretVisited))saved.secretVisited.forEach(v=>{const r=secretRooms.find(q=>q.id===v);if(r)r.visited=true;});
+      if(Array.isArray(saved.storyFragments))saved.storyFragments.forEach(v=>{if(storyFragments.some(q=>q.id===v))collectedStoryFragments.add(v);});
+      if(saved.trialMedals&&typeof saved.trialMedals==='object')for(const [k,v] of Object.entries(saved.trialMedals)){const z=Number(k);if(zoneInfo[z]&&['bronze','silver','gold'].includes(v))trialMedals[z]=v;}
+      if(Array.isArray(saved.ownedGear))saved.ownedGear.forEach(v=>{if(fieldGear.some(g=>g.id===v))ownedGear.add(v);});
+      totalScrapEarned=Math.max(0,Number(saved.scrapEarned)||0);totalScrapSpent=Math.max(0,Number(saved.scrapSpent)||0);
       if(Array.isArray(saved.scrapCollected))saved.scrapCollected.forEach(v=>{if(scrapPickups.some(t=>t.id===v))collectedScrapIds.add(v);});
       if(Array.isArray(saved.questItems))saved.questItems.forEach(v=>{if(questPickups.some(t=>t.id===v))collectedQuestItems.add(v);});
       if(Array.isArray(saved.memories))saved.memories.forEach(v=>{if(memoryPickups.some(t=>t.id===v))collectedMemoryIds.add(v);});
@@ -968,7 +1056,7 @@
     }catch(_){/* private browsing or disabled storage: progress remains session-only */}
   }
   function saveProgress(){
-    try{localStorage.setItem('fih2d_progress_v4',JSON.stringify({completed:[...completedQuestIds],cosmetics:[...unlockedCosmetics],equipped:equippedCosmetic,checkpoints:[...unlockedCheckpointIds],foundTrophies:[...collectedFoundTrophies],scrapCollected:[...collectedScrapIds],questItems:[...collectedQuestItems],memories:[...collectedMemoryIds],endingUnlocked,memorySetRewarded,cleanLandingPlatforms:[...rewardedLandingPlatforms],cleanLandings,bestLandingStreak,activeQuest:activeQuestId,scrapChips,visitedZones:[...visitedZones],run:savedRun}));}catch(_){/* storage is optional */}
+    try{localStorage.setItem('fih2d_progress_v4',JSON.stringify({completed:[...completedQuestIds],cosmetics:[...unlockedCosmetics],equipped:equippedCosmetic,checkpoints:[...unlockedCheckpointIds],foundTrophies:[...collectedFoundTrophies],scrapCollected:[...collectedScrapIds],questItems:[...collectedQuestItems],memories:[...collectedMemoryIds],endingUnlocked,memorySetRewarded,cleanLandingPlatforms:[...rewardedLandingPlatforms],cleanLandings,bestLandingStreak,activeQuest:activeQuestId,scrapChips,visitedZones:[...visitedZones],questlines:questlineProgress,activeQuestline:activeQuestlineId,questlineItems:[...collectedQuestlineItems],secretRelics:[...collectedSecretRelics],secretVisited:secretRooms.filter(r=>r.visited).map(r=>r.id),storyFragments:[...collectedStoryFragments],trialMedals,ownedGear:[...ownedGear],scrapEarned:totalScrapEarned,scrapSpent:totalScrapSpent,run:savedRun}));}catch(_){/* storage is optional */}
     updateContinueButton();
   }
   function updateContinueButton(){const b=document.getElementById('continueButton');if(b)b.disabled=!hasContinue||!savedRun;}
@@ -1025,7 +1113,7 @@
   }
   function updateNarrator(){
     const zi=zoneAtY(player.y);
-    if(zi!==lastNarratedZone){lastNarratedZone=zi;const variants=narratorLines[zi]||['Keep going.'];const line=variants[(Math.random()*variants.length)|0];if(zi>0&&!visitedZones.has(zi)){visitedZones.add(zi);scrapChips+=12;saveProgress();narrate(line,true);setToast(`NARRATOR · ${line} · AREA DISCOVERED +12 SCRAP`);playSfx('trophy');}else narrate(line,true);}
+    if(zi!==lastNarratedZone){lastNarratedZone=zi;const variants=narratorLines[zi]||['Keep going.'];const line=variants[(Math.random()*variants.length)|0];if(zi>0&&!visitedZones.has(zi)){visitedZones.add(zi);awardScrap(12);saveProgress();narrate(line,true);setToast(`NARRATOR · ${line} · AREA DISCOVERED +12 SCRAP`);playSfx('trophy');}else narrate(line,true);}
     const progress=clamp((START_PLAYER_Y-player.y)/(START_PLAYER_Y-42),0,1);
     for(const mark of [0.25,0.5,0.75,0.9])if(progress>=mark&&!narratorMilestones.has(mark)){narratorMilestones.add(mark);narrate(mark===0.25?'A quarter of the way up. The ground is already starting to look smaller.':mark===0.5?'Halfway up. The narrator is legally required to sound impressed.':mark===0.75?'Three quarters of the way there. Try not to celebrate on a moving platform.':'The summit is close. This is where the story usually asks for one last mistake.');}
   }
@@ -1035,7 +1123,7 @@
     if(!npc||completedQuestIds.has(npc.quest.id))return;
     completedQuestIds.add(npc.quest.id);unlockedCosmetics.add(npc.quest.cosmetic);const missionReward=55+Math.max(0,npc.zone)*3;
     const missionQuips={collect:`${npc.name} has all the missing bits back. The narrator is pleased that this was, technically, a delivery service.`,land:`A perfect landing for ${npc.name}. The narrator will record that as a rare example of following instructions.`,reach:`${npc.name}'s destination reached. The narrator is beginning to suspect Flippy could find the top of anything.`};
-    narrate(missionQuips[npc.quest.type]||`${npc.name} seems delighted. The narrator is cautiously optimistic about this working relationship.`,true);scrapChips+=missionReward;activeQuestId='';saveProgress();playSfx('mission');
+    narrate(missionQuips[npc.quest.type]||`${npc.name} seems delighted. The narrator is cautiously optimistic about this working relationship.`,true);awardScrap(missionReward);activeQuestId='';saveProgress();playSfx('mission');
     spawnBurst(player.x,player.y,30,'#f7d77e');shake=Math.max(shake,8);vibrate([16,25,16]);
     setToast(`TROPHY EARNED · ${npc.quest.trophy} · +${missionReward} SCRAP · ${npc.quest.cosmetic} UNLOCKED`);
     updateJournal();
@@ -1053,38 +1141,119 @@
     for(const n of npcs){const d=Math.hypot(player.x-n.x,player.y-n.y);if(d<bestD){bestD=d;best=n;}}
     return best&&bestD<112?best:null;
   }
+  function questlineForNpc(npcId){return questlineDefs.find(q=>q.npcId===npcId)||null;}
+  function questlineState(line){if(!questlineProgress[line.id])questlineProgress[line.id]={stage:0,completed:false};return questlineProgress[line.id];}
+  function startQuestline(line){const st=questlineState(line);if(st.completed){setToast(`${line.title.toUpperCase()} · ALREADY COMPLETE`);return;}activeQuestlineId=line.id;activeQuestId='';saveProgress();setToast(`${line.title.toUpperCase()} · ${line.stages[st.stage].label}`);narrate(`${line.title}. A proper project, with phases. The narrator has brought a clipboard.`,true);playSfx('mission');renderPauseTab('questlines');}
+  function finishQuestline(line){const st=questlineState(line);if(st.completed)return;st.completed=true;st.stage=line.stages.length;activeQuestlineId='';awardScrap(line.reward);if(cosmeticPalette[line.cosmetic])unlockedCosmetics.add(line.cosmetic);setToast(`QUESTLINE COMPLETE · ${line.title.toUpperCase()} · +${line.reward} SCRAP`);narrate(`${line.title} is complete. ${line.cosmetic} unlocked. The narrator would give a speech, but the paperwork is considerable.`,true);playSfx('mission');spawnBurst(player.x,player.y,30,'#f7d77e');shake=Math.max(shake,7);saveProgress();}
+  function advanceQuestline(line){const st=questlineState(line);if(st.completed)return;st.stage++;if(st.stage>=line.stages.length){finishQuestline(line);return;}saveProgress();setToast(`${line.title.toUpperCase()} · ${st.stage+1}/${line.stages.length} · ${line.stages[st.stage].label}`);narrate('One stage complete. The next page of the plan has been revealed.',true);playSfx('checkpoint');}
+  function updateQuestlines(){if(!activeQuestlineId)return;const line=questlineDefs.find(q=>q.id===activeQuestlineId);if(!line)return;const st=questlineState(line),stage=line.stages[st.stage];if(!stage)return;
+    if(stage.type==='collect'&&stage.items?.every(it=>collectedQuestlineItems.has(it.id)))advanceQuestline(line);
+    else if(stage.type==='reach'&&stage.target&&Math.hypot(player.x-stage.target.x,player.y-stage.target.y)<88)advanceQuestline(line);
+    else if(stage.type==='land'&&player.supported&&player.ground===stage.platform)advanceQuestline(line);
+  }
   function interactNPC(){
-    const n=nearestNPC();
+    if(insideSecretRoom){const room=secretRooms.find(r=>r.id===insideSecretRoom);if(room){insideSecretRoom='';player.x=room.returnX;player.y=room.returnY;player.vx=0;player.vy=0;player.angle=0;player.omega=0;player.ground=room.doorPlatform;player.supported=true;player.grounded=true;player.canJump=true;cameraX=clamp(player.x-W*.5,0,WORLD_W-W);cameraY=clamp(player.y-H*.6,0,worldHeight-H);setToast('BACK TO THE TRASHLANDS');playSfx('checkpoint');return;}}
+    const door=findNearbySecretDoor();const npcNear=nearestNPC();if(door&&(!npcNear||Math.hypot(player.x-door.doorX,player.y-door.doorY)<Math.hypot(player.x-npcNear.x,player.y-npcNear.y))){enterSecretRoom(door);return;}
+    const n=npcNear;
     if(!n){setToast('NO ONE CLOSE ENOUGH TO TALK TO');return;}
+    const line=questlineForNpc(n.id);
+    if(line){const st=questlineState(line);if(st.completed){setToast(`${n.name.toUpperCase()}: WE MAKE A GOOD TEAM, FLIPPY.`);narrate(`${n.name} remembers the whole project. This is what people call a long-term relationship.`,true);return;}
+      activeQuestlineId=line.id;activeQuestId='';
+      if(st.stage<line.stages.length&&line.stages[st.stage].type==='talk')advanceQuestline(line);
+      else{const stage=line.stages[st.stage];setToast(`${n.name.toUpperCase()} · ${line.title} · ${stage.label}`);narrate(`${n.name} checks the progress. There is still work to do.`,true);}
+      saveProgress();return;
+    }
     if(completedQuestIds.has(n.quest.id)){setToast(`${n.name.toUpperCase()}: THANKS AGAIN, FLIPPY!`);narrate(`${n.name} remembers you. A rare case of someone being pleased to see a phone.`,true);return;}
     activeQuestId=n.quest.id;saveProgress();playSfx('ui');
     const progress=n.quest.type==='collect'?` ${missionCount(n)}/3 found.`:n.quest.type==='land'?' Land Flippy on the marked ledge.':' Reach the marked location.';
     const taskQuips={collect:`${n.name} has misplaced three things. The narrator hopes they are small.`,land:`${n.name} wants a very specific landing. The narrator is already nervous.`,reach:`${n.name} has marked a destination. The narrator notes that “up there” is not a complete address.`};
-    setToast(`${n.name.toUpperCase()} · ${n.quest.description}${progress}`);narrate(taskQuips[n.quest.type],true);
-    updateJournal();
+    setToast(`${n.name.toUpperCase()} · ${n.quest.description}${progress}`);narrate(taskQuips[n.quest.type],true);updateJournal();
   }
+  function collectQuestlineItems(){if(!activeQuestlineId)return;const line=questlineDefs.find(q=>q.id===activeQuestlineId);if(!line)return;const stage=line.stages[questlineState(line).stage];if(!stage||stage.type!=='collect')return;for(const item of stage.items||[]){if(collectedQuestlineItems.has(item.id))continue;if(Math.hypot(player.x-item.x,player.y-item.y)<38){collectedQuestlineItems.add(item.id);spawnBurst(item.x,item.y,13,'#b9f0ff');playSfx('pickup');setToast(`${line.title.toUpperCase()} · ${stage.items.filter(it=>collectedQuestlineItems.has(it.id)).length}/${stage.items.length} FOUND`);saveProgress();}}}
+  function updateLivingNPCs(dt){
+    nearestNpcIdForPlayer='';let nearestNpcDistance=Infinity;
+    for(const n of npcs){
+      const p=n.homePlatform;if(!p)continue;
+      n.patrolPhase+=dt*n.patrolSpeed;n.activityTimer-=dt;n.socialTimer-=dt;
+      if(n.activityTimer<=0){n.activityIndex=(n.activityIndex+1)%4;n.activityTimer=7+Math.random()*10;}
+      const routine=['patrol','inspect','rest','wave'][n.activityIndex];
+      const npcDistance=Math.hypot(player.x-n.x,player.y-n.y);
+      if(npcDistance<nearestNpcDistance){nearestNpcDistance=npcDistance;nearestNpcIdForPlayer=n.id;}
+      const engaged=npcDistance<105;
+      n.activity=engaged?'chat':routine;
+      const pace=routine==='rest'?.035:routine==='inspect'?.42:routine==='wave'?.18:1;
+      n.x=n.baseX+Math.sin(n.patrolPhase)*n.patrolRadius*pace;
+      n.y=p.y-34+(routine==='rest'?Math.sin(n.patrolPhase*1.2)*.7:Math.sin(n.patrolPhase*2)*2.3);
+      n.mood=engaged?'curious':completedQuestIds.has(n.quest.id)?'happy':routine==='rest'?'resting':routine==='inspect'?'busy':'idle';
+      n.bubbleTimer=Math.max(0,n.bubbleTimer-dt);n.chatterTimer-=dt;
+      if(engaged&&n.chatterTimer<=0&&!n.bubbleTimer){
+        const lines=completedQuestIds.has(n.quest.id)?['Good to see you again!','Still climbing? Respect.','Tell Jeff I said hello.']:['Psst. Over here!','I have a small favour…','Watch your angle, Flippy.','The narrator talks too much.'];
+        n.bubble=lines[Math.floor(Math.random()*lines.length)];n.bubbleTimer=3.1;n.chatterTimer=18+Math.random()*16;
+      }
+    }
+    // Occasionally let nearby residents gossip to each other, instead of making
+    // every character wait exclusively for the player to walk past.
+    for(let i=0;i<npcs.length;i++){
+      const n=npcs[i];if(n.socialTimer>0||n.bubbleTimer>0||Math.hypot(player.x-n.x,player.y-n.y)<170)continue;
+      const friend=npcs.slice(i+1).find(q=>!q.bubbleTimer&&Math.hypot(n.x-q.x,n.y-q.y)<92);
+      if(friend){const lines=[['Did you hear that ringtone?','Probably just Flippy again.'],['This place needs a proper roof.','We live in a cardboard fort.'],['Think Flippy will make it home?','I think so. Little phone has grit.']];const pair=lines[(Math.random()*lines.length)|0];n.bubble=pair[0];friend.bubble=pair[1];n.bubbleTimer=friend.bubbleTimer=3.4;}
+      n.socialTimer=20+Math.random()*15;
+    }
+  }
+  let nearestNpcIdForPlayer='';
+  function notifyNPCsOfEvent(kind){for(const n of npcs){if(Math.hypot(player.x-n.x,player.y-n.y)<300){n.bubble=kind==='fall'?'Oof! Are you alright?':kind==='land'?'Nice landing!':'Did you see that?';n.bubbleTimer=3.4;n.chatterTimer=Math.max(n.chatterTimer,12);}}}
+  function findNearbySecretDoor(){if(insideSecretRoom)return null;let best=null,d0=105;for(const r of secretRooms){const d=Math.hypot(player.x-r.doorX,player.y-r.doorY);if(d<d0){d0=d;best=r;}}return best;}
+  function enterSecretRoom(room){insideSecretRoom=room.id;room.visited=true;const p=room.platforms[0];player.x=p.x+p.w/2;player.y=p.y-42;player.vx=0;player.vy=0;player.angle=0;player.omega=0;player.ground=p;player.supported=true;player.grounded=true;player.canJump=true;player.invuln=.4;cameraX=clamp(player.x-W*.5,0,WORLD_W-W);cameraY=clamp(player.y-H*.6,0,worldHeight-H);setToast(`${room.name.toUpperCase()} · SECRET ROOM FOUND`);narrate(`A hidden room. The Trashlands has more corners than the narrator's filing cabinet.`,true);playSfx('trophy');saveProgress();}
+  function collectSecretAndStory(){for(const room of secretRooms){if(!collectedSecretRelics.has(room.relic.id)&&Math.hypot(player.x-room.relic.x,player.y-room.relic.y)<45){collectedSecretRelics.add(room.relic.id);awardScrap(65);unlockedCosmetics.add(room.zone===0?'Drain Rat Rust':room.zone===2?'Swing Set Silver':'Memory Mosaic');setToast(`SECRET RELIC · ${room.name.toUpperCase()} · +65 SCRAP`);narrate('A hidden keepsake. This place is full of things people thought were lost.',true);playSfx('trophy');saveProgress();}}
+    for(const f of storyFragments){if(collectedStoryFragments.has(f.id)||Math.hypot(player.x-f.x,player.y-f.y)>43)continue;collectedStoryFragments.add(f.id);openStoryScene(f.title,f.text);playSfx('trophy');saveProgress();break;}}
+  function openStoryScene(title,text){document.getElementById('storyTitle').textContent=title;document.getElementById('storyText').textContent=text;document.getElementById('storyOverlay').classList.remove('hidden');state='story';}
+  function closeStoryScene(){document.getElementById('storyOverlay').classList.add('hidden');if(state==='story')state='playing';saveProgress();}
+  function startQuestlineById(id){const line=questlineDefs.find(q=>q.id===id);if(line)startQuestline(line);}
+  function startRegionalTrial(zone){if(multiplayer){setToast('REGIONAL TRIALS ARE SOLO CHALLENGES');return;}if(!Number.isInteger(zone)||!zoneInfo[zone])return;if(zone!==zoneAtY(player.y)){setToast('TRAVEL TO THIS REGION BEFORE STARTING ITS TRIAL');return;}activeRegionalTrial={zone,startedAt:time,limit:105,landed:new Set()};state='playing';pauseOverlay.classList.add('hidden');setToast(`${zoneInfo[zone].name.toUpperCase()} TRIAL · MAKE 3 CLEAN LANDINGS IN 105 SECONDS`);narrate('A regional trial. Three good landings, a ticking clock, and no sensible reason to attempt it.');}
+  function registerTrialLanding(p){
+    if(!activeRegionalTrial||!p||!player.supported)return;
+    const z=zoneAtY(player.y);if(z!==activeRegionalTrial.zone)return;
+    const platformId=platforms.indexOf(p);if(platformId<0)return;
+    activeRegionalTrial.landed.add(platformId);
+    if(activeRegionalTrial.landed.size>=3){
+      const elapsed=time-activeRegionalTrial.startedAt;
+      const medal=elapsed<36?'gold':elapsed<68?'silver':'bronze';
+      const rewards={bronze:90,silver:135,gold:190},rank={bronze:1,silver:2,gold:3};
+      const previous=trialMedals[z]||'';
+      const improved=!previous||rank[medal]>rank[previous];
+      const reward=improved?rewards[medal]-(previous?rewards[previous]:0):0;
+      if(improved)trialMedals[z]=medal;
+      if(reward>0)awardScrap(reward);
+      activeRegionalTrial=null;
+      setToast(improved?`${medal.toUpperCase()} REGIONAL MEDAL · +${reward} SCRAP`:`${medal.toUpperCase()} REGIONAL TRIAL · PERSONAL BEST UNCHANGED`);
+      narrate(improved?'A regional trial cleared. The narrator will pretend that was expected.':'A respectable attempt. Your existing medal remains safe.',true);
+      playSfx('trophy');saveProgress();
+    }
+  }
+  function updateRegionalTrial(dt){if(!activeRegionalTrial)return;if(time-activeRegionalTrial.startedAt>activeRegionalTrial.limit){setToast(`${zoneInfo[activeRegionalTrial.zone].name.toUpperCase()} TRIAL FAILED · TIME EXPIRED`);activeRegionalTrial=null;saveProgress();}}
+
   function collectWorldPickups(){
     for(const item of scrapPickups){
       if(collectedScrapIds.has(item.id))continue;
-      if(Math.hypot(player.x-item.x,player.y-item.y)<31){
+      if(Math.hypot(player.x-item.x,player.y-item.y)<(ownedGear.has('scrap-magnet')?45:31)){
         collectedScrapIds.add(item.id);scrapCombo=scrapComboTimer>0?scrapCombo+1:1;scrapComboTimer=7;
-        const comboBonus=scrapCombo%3===0?5:0;const earned=item.value+comboBonus;scrapChips+=earned;
+        const comboBonus=scrapCombo%3===0?5:0;const earned=item.value+comboBonus+(ownedGear.has('lucky-socket')&&item.kind==='shard'?2:0);awardScrap(earned);
         spawnBurst(item.x,item.y,item.kind==='cache'?16:9,item.kind==='cache'?'#f8d67d':'#b9e6ff');setToast(`SCRAP ${item.kind==='cache'?'CACHE':'SHARD'} +${earned}${comboBonus?' · PICKUP CHAIN +5':''}`);if(scrapCombo===5)narrate('Five pickups in a row. At this rate, Flippy may be able to afford a very small holiday.',true);playSfx('pickup');saveProgress();
       }
     }
     for(const trophy of findableTrophies){
       if(collectedFoundTrophies.has(trophy.id))continue;
       if(Math.hypot(player.x-trophy.x,player.y-trophy.y)<43){
-        collectedFoundTrophies.add(trophy.id);scrapChips+=25;spawnBurst(trophy.x,trophy.y,24,'#ffe39b');shake=Math.max(shake,6);playSfx('trophy');
+        collectedFoundTrophies.add(trophy.id);awardScrap(25);spawnBurst(trophy.x,trophy.y,24,'#ffe39b');shake=Math.max(shake,6);playSfx('trophy');
         setToast(`HIDDEN TROPHY FOUND · ${trophy.name.toUpperCase()} · +25 SCRAP`);narrate('A hidden keepsake. Someone went to a great deal of trouble to put that there. You went to a greater deal of trouble to reach it.',true);saveProgress();
       }
     }
     for(const memory of memoryPickups){
       if(collectedMemoryIds.has(memory.id))continue;
       if(Math.hypot(player.x-memory.x,player.y-memory.y)<39){
-        collectedMemoryIds.add(memory.id);scrapChips+=30;spawnBurst(memory.x,memory.y,18,'#a9f2e2');playSfx('trophy');
+        collectedMemoryIds.add(memory.id);awardScrap(30);spawnBurst(memory.x,memory.y,18,'#a9f2e2');playSfx('trophy');
         setToast(`HOME MEMORY FOUND · ${memory.name.toUpperCase()} · +30 SCRAP`);narrate('A memory from home. For a moment, the climb feels a little less far away.',true);
-        if(collectedMemoryIds.size===memoryPickups.length&&!memorySetRewarded){memorySetRewarded=true;unlockedCosmetics.add('Memory Mosaic');scrapChips+=75;setToast('ALL HOME MEMORIES FOUND · MEMORY MOSAIC UNLOCKED · +75 SCRAP');playSfx('mission');}
+        if(collectedMemoryIds.size===memoryPickups.length&&!memorySetRewarded){memorySetRewarded=true;unlockedCosmetics.add('Memory Mosaic');awardScrap(75);setToast('ALL HOME MEMORIES FOUND · MEMORY MOSAIC UNLOCKED · +75 SCRAP');playSfx('mission');}
         saveProgress();
       }
     }
@@ -1110,7 +1279,7 @@
     setToast(`PHONE LOOK · ${equippedCosmetic.toUpperCase()}`);
   }
   let activePauseTab='overview';
-  const CONTROL_META={rotateLeft:'Rotate left',rotateRight:'Rotate right',jump:'Vibration jump',interact:'Talk / interact',tether:'Piton tether',helpBeam:'Help Beam',pause:'Pause menu',checkpoints:'Checkpoint menu',trophies:'Trophy cabinet',recover:'Recover',restart:'Restart climb',fullscreen:'Fullscreen'};
+  const CONTROL_META={rotateLeft:'Rotate left',rotateRight:'Rotate right',jump:'Vibration jump',interact:'Talk / interact',tether:'Piton tether',helpBeam:'Help Beam',requestRescue:'Request rescue',pause:'Pause menu',checkpoints:'Checkpoint menu',trophies:'Trophy cabinet',recover:'Recover',restart:'Restart climb',fullscreen:'Fullscreen'};
   function keyLabel(code){return ({Space:'SPACE',ArrowLeft:'←',ArrowRight:'→',ArrowUp:'↑',ArrowDown:'↓',Escape:'ESC',Enter:'ENTER',ShiftLeft:'LEFT SHIFT',ShiftRight:'RIGHT SHIFT',ControlLeft:'LEFT CTRL',AltLeft:'LEFT ALT'})[code]||String(code||'').replace(/^Key/,'').replace(/^Digit/,'');}
   function bindingDown(action){return !!keys[keyBindings[action]];}
   function isBoundEvent(action,e){return !!e&&e.code===keyBindings[action];}
@@ -1125,15 +1294,16 @@
   }
   const pauseContent=document.getElementById('pauseContent');
   function escHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  function trophyCount(){return completedQuestIds.size+collectedFoundTrophies.size+(endingUnlocked?1:0);}
+  function trophyCount(){return completedQuestIds.size+collectedFoundTrophies.size+questlineDefs.filter(q=>questlineState(q).completed).length+collectedSecretRelics.size+Object.keys(trialMedals).length+(endingUnlocked?1:0);}
+  function totalTrophyCount(){return npcs.length+findableTrophies.length+questlineDefs.length+secretRooms.length+zoneInfo.length+1;}
   function renderPauseTab(tab){
     activePauseTab=tab;
     document.querySelectorAll('[data-pause-tab]').forEach(b=>b.classList.toggle('active',b.dataset.pauseTab===tab));
-    const titles={overview:['Paused','Take a breath. Flippy is not going anywhere.'],checkpoints:['Checkpoint Network','Chill mode fast travel · only unlocked locations can be selected.'],missions:['Trashlands Missions','Track an NPC challenge, follow its marker, and earn a trophy, scrap and a phone look.'],trophies:['Trophy Cabinet',`${trophyCount()} / ${npcs.length+findableTrophies.length+1} trophies discovered.`],shop:['Scrap Shop',`A proper little market for phone looks. Balance: ${scrapChips} scrap chips.`],skins:['Phone Skins',`Choose an owned look for Flippy. ${unlockedCosmetics.size} unlocked.`],settings:['Game Settings',`Current world: ${DIFFICULTIES[difficultyId].name} · ${mode==='chill'?'Chill climb':'Hard climb'}.`],controls:['Control Bindings','Remap every keyboard action. Press a key to assign it.'],audio:['Audio Settings','Tune the volume and choose which sound layers play.'],ui:['Interface Themes','Choose a visual style for the menus and game interface.'],hud:['HUD Layout','Choose which pieces of the heads-up display stay on screen.']};
+    const titles={overview:['Paused','Take a breath. Flippy is not going anywhere.'],checkpoints:['Checkpoint Network','Chill mode fast travel · only unlocked locations can be selected.'],missions:['Trashlands Missions','Track an NPC challenge, follow its marker, and earn a trophy, scrap and a phone look.'],questlines:['Resident Questlines','Longer stories with several stages, new places and a special reward.'],secrets:['Hidden Places','Secret rooms, keepsakes and story fragments discovered while exploring.'],trials:['Regional Trials','Three distinct clean landings in one region. Finish quickly for a better medal.'],gear:['Field Gear','Spend scrap on permanent exploration helpers. Gear is utility-only and never required to finish the climb.'],trophies:['Trophy Cabinet',`${trophyCount()} / ${totalTrophyCount()} trophies discovered.`],shop:['Scrap Shop',`A proper little market for phone looks. Balance: ${scrapChips} scrap chips.`],skins:['Phone Skins',`Choose an owned look for Flippy. ${unlockedCosmetics.size} unlocked.`],settings:['Game Settings',`Current world: ${DIFFICULTIES[difficultyId].name} · ${mode==='chill'?'Chill climb':'Hard climb'}.`],controls:['Control Bindings','Remap every keyboard action. Press a key to assign it.'],audio:['Audio Settings','Tune the volume and choose which sound layers play.'],ui:['Interface Themes','Choose a visual style for the menus and game interface.'],hud:['HUD Layout','Choose which pieces of the heads-up display stay on screen.']};
     document.getElementById('pauseTitle').textContent=titles[tab][0];document.getElementById('pauseSubtitle').textContent=titles[tab][1];
     if(tab==='overview'){
       const zone=zoneInfo[zoneAtY(player.y)]||zoneInfo[0];
-      pauseContent.innerHTML=`<h3>Current climb</h3><div class="pause-stats"><div class="pause-stat"><small>REGION</small><strong style="font-size:15px">${escHtml(zone.name)}</strong></div><div class="pause-stat"><small>DIFFICULTY</small><strong>${escHtml(DIFFICULTIES[difficultyId].name)}</strong></div><div class="pause-stat"><small>FALLS</small><strong>${falls}</strong></div><div class="pause-stat"><small>SCRAP CHIPS</small><strong>${scrapChips}</strong></div></div><div class="pause-banner"><b>${escHtml(CLIMB_STYLES[climbStyle].name)}</b> · ${escHtml(CLIMB_STYLES[climbStyle].description)}</div><div class="pause-banner">${climbStyle==='iron'?'Iron Flippy disables checkpoint teleport.':mode==='chill'?'Chill mode allows teleporting to unlocked checkpoints.':'Hard Climb has no checkpoint fast travel.'}</div><h3>Flippy's progress</h3>${activeMission()?`<div class="pause-banner">ACTIVE MISSION · ${escHtml(activeMission().name)} — ${escHtml(activeMission().quest.description)}</div>`:''}<div class="pause-grid"><div class="pause-card"><strong>${trophyCount()} / ${npcs.length+findableTrophies.length+1} trophies</strong><small>Find hidden keepsakes and complete NPC missions.</small></div><div class="pause-card"><strong>${completedQuestIds.size} / ${npcs.length} missions</strong><small>Help the Trashlands residents and earn rewards.</small></div><div class="pause-card"><strong>${unlockedCheckpointIds.size} / ${checkpointRecords.length} checkpoints</strong><small>Unlocked locations are saved in this browser.</small></div><div class="pause-card"><strong>${unlockedCosmetics.size} phone looks</strong><small>Buy and equip shells in the Shop and Phone Skins tabs.</small></div><div class="pause-card"><strong>${cleanLandings} clean landings · best streak ×${bestLandingStreak}</strong><small>Land upright with low spin to earn scrap. Each platform only pays once.</small></div><div class="pause-card"><strong>${collectedMemoryIds.size} / ${memoryPickups.length} home memories</strong><small>Find the three keepsakes near the top to unlock Memory Mosaic.</small></div></div><div class="pause-actions"><button class="primary" data-action="resume">Resume climb</button><button class="secondary" data-pause-tab="trophies">View trophies</button><button class="secondary" data-pause-tab="shop">Visit scrap shop</button></div>`;
+      pauseContent.innerHTML=`<h3>Current climb</h3><div class="pause-stats"><div class="pause-stat"><small>REGION</small><strong style="font-size:15px">${escHtml(zone.name)}</strong></div><div class="pause-stat"><small>DIFFICULTY</small><strong>${escHtml(DIFFICULTIES[difficultyId].name)}</strong></div><div class="pause-stat"><small>FALLS</small><strong>${falls}</strong></div><div class="pause-stat"><small>SCRAP CHIPS</small><strong>${scrapChips}</strong></div></div><div class="pause-banner"><b>${escHtml(CLIMB_STYLES[climbStyle].name)}</b> · ${escHtml(CLIMB_STYLES[climbStyle].description)}</div><div class="pause-banner">${climbStyle==='iron'?'Iron Flippy disables checkpoint teleport.':mode==='chill'?'Chill mode allows teleporting to unlocked checkpoints.':'Hard Climb has no checkpoint fast travel.'}</div><h3>Flippy's progress</h3>${activeMission()?`<div class="pause-banner">ACTIVE MISSION · ${escHtml(activeMission().name)} — ${escHtml(activeMission().quest.description)}</div>`:''}<div class="pause-grid"><div class="pause-card"><strong>${trophyCount()} / ${totalTrophyCount()} trophies</strong><small>Find hidden keepsakes and complete NPC missions.</small></div><div class="pause-card"><strong>${completedQuestIds.size} / ${npcs.length} quick missions</strong><small>Help the Trashlands residents and earn rewards.</small></div><div class="pause-card"><strong>${questlineDefs.filter(q=>questlineState(q).completed).length} / ${questlineDefs.length} resident stories</strong><small>Complete all three stages of each long-form questline.</small></div><div class="pause-card"><strong>${unlockedCheckpointIds.size} / ${checkpointRecords.length} checkpoints</strong><small>Unlocked locations are saved in this browser.</small></div><div class="pause-card"><strong>${unlockedCosmetics.size} phone looks</strong><small>Buy and equip shells in the Shop and Phone Skins tabs.</small></div><div class="pause-card"><strong>${cleanLandings} clean landings · best streak ×${bestLandingStreak}</strong><small>Land upright with low spin to earn scrap. Each platform only pays once.</small></div><div class="pause-card"><strong>${collectedMemoryIds.size} / ${memoryPickups.length} home memories</strong><small>Find the keepsakes to unlock Memory Mosaic.</small></div><div class="pause-card"><strong>${totalScrapEarned} earned · ${totalScrapSpent} spent</strong><small>Scrap Magnet, Lucky Socket, Battery Sleeve and Landing Grip are optional field upgrades.</small></div><div class="pause-card"><strong>${questlineDefs.filter(q=>questlineState(q).completed).length}/${questlineDefs.length} resident stories</strong><small>Long-form NPC questlines with unique cosmetics.</small></div></div><div class="pause-actions"><button class="primary" data-action="resume">Resume climb</button><button class="secondary" data-pause-tab="trophies">View trophies</button><button class="secondary" data-pause-tab="shop">Visit scrap shop</button></div>`;
     }else if(tab==='checkpoints'){
       if(mode!=='chill'||climbStyle==='iron'||(multiplayer&&multiplayerMode!=='coop')){pauseContent.innerHTML='<div class="pause-banner">Checkpoint teleport requires Chill mode or Co-op Climb, and is disabled by Iron Flippy rules.</div>';}
       else{
@@ -1148,11 +1318,26 @@
         return `<div class="pause-card ${done?'owned':active?'active-mission':'locked'}"><strong>${done?'★':active?'▶':'◇'} ${escHtml(n.name)} · ${escHtml(n.title)}</strong><small>${escHtml(zoneInfo[n.zone].name)}<br>${escHtml(n.quest.description)}<br><b>${escHtml(progress)}</b></small><small style="color:${done?'#c6f06c':active?'#ffd08a':'#84999d'}">${stateText}</small><button class="${active?'secondary':'primary'}" data-track-quest="${escHtml(n.quest.id)}" ${done?'disabled':''}>${done?'Completed':active?'Stop tracking':'Track mission'}</button></div>`;
       }).join('');
       pauseContent.innerHTML=`<div class="pause-banner">${completedQuestIds.size} / ${npcs.length} missions completed. Tracking one mission places a clear marker in the world. Collect missions remember each item you find, even after you close the game.</div><div class="pause-grid">${entries}</div>`;
+    }else if(tab==='questlines'){
+      const cards=questlineDefs.map(line=>{const st=questlineState(line),active=activeQuestlineId===line.id,stage=line.stages[st.stage];return `<div class="pause-card ${st.completed?'owned':active?'active-mission':'locked'}"><strong>${st.completed?'★':active?'▶':'◇'} ${escHtml(line.title)}</strong><small>${escHtml(line.description)}<br>${escHtml(zoneInfo[line.zone].name)} · Reward ${line.reward} scrap + ${escHtml(line.cosmetic)}<br>${st.completed?'All stages complete':`Stage ${st.stage+1}/${line.stages.length}: ${escHtml(stage?.label||'Complete')}`}</small><button class="${active?'secondary':'primary'}" data-questline-track="${line.id}" ${st.completed?'disabled':''}>${st.completed?'Completed':active?'Tracking':'Start / track'}</button></div>`;}).join('');
+      pauseContent.innerHTML=`<div class="pause-banner">${questlineDefs.filter(q=>questlineState(q).completed).length}/${questlineDefs.length} resident stories completed. Each is a three-stage project, separate from the quick NPC requests.</div><div class="pause-grid">${cards}</div>`;
+    }else if(tab==='secrets'){
+      const rooms=secretRooms.map(r=>`<div class="pause-card ${r.visited?'owned':'locked'}"><strong>${r.visited?'✦':'◇'} ${escHtml(r.name)}</strong><small>${escHtml(zoneInfo[r.zone].name)}<br>${r.visited?'Doorway discovered':'A shimmering doorway is hidden somewhere along the side route.'}<br>${collectedSecretRelics.has(r.relic.id)?'Keepsake recovered':'Keepsake not yet recovered'}</small></div>`).join('');
+      const fragments=storyFragments.map(f=>`<div class="pause-card ${collectedStoryFragments.has(f.id)?'owned':'locked'}"><strong>${collectedStoryFragments.has(f.id)?'▣':'◇'} ${escHtml(f.title)}</strong><small>${collectedStoryFragments.has(f.id)?escHtml(f.text):'A memory fragment waits somewhere in '+escHtml(zoneInfo[f.zone].name)+'.'}</small></div>`).join('');
+      pauseContent.innerHTML=`<div class="pause-banner">${secretRooms.filter(r=>r.visited).length}/${secretRooms.length} secret rooms · ${collectedSecretRelics.size}/${secretRooms.length} relics · ${collectedStoryFragments.size}/${storyFragments.length} optional memories.</div><h3>Secret rooms</h3><div class="pause-grid">${rooms}</div><h3>Story fragments</h3><div class="pause-grid">${fragments}</div>`;
+    }else if(tab==='trials'){
+      const current=zoneAtY(player.y);const rows=zoneInfo.map((z,i)=>`<div class="pause-card ${trialMedals[i]?'owned':''}"><strong>${trialMedals[i]?'★':i===current?'▶':'◇'} ${escHtml(z.name)}</strong><small>3 clean landings on different platforms · best medal: ${(trialMedals[i]||'not earned').toUpperCase()}</small><button class="${i===current?'primary':'secondary'}" data-start-trial="${i}" ${(multiplayer||i!==current)?'disabled':''}>${multiplayer?'Solo only':activeRegionalTrial?.zone===i?'Trial active':i===current?'Start this trial':'Travel to region first'}</button></div>`).join('');
+      pauseContent.innerHTML=`<div class="pause-banner">Regional trials are optional skill tests. Stand in a region and start its challenge. Complete three clean landings on different platforms before the 105-second timer expires.</div>${activeRegionalTrial?`<div class="shop-hero"><strong>ACTIVE · ${escHtml(zoneInfo[activeRegionalTrial.zone].name)}</strong><p>${activeRegionalTrial.landed.size}/3 clean landings · ${Math.max(0,Math.ceil(activeRegionalTrial.limit-(time-activeRegionalTrial.startedAt)))} seconds left</p></div>`:''}<div class="pause-grid">${rows}</div>`;
+    }else if(tab==='gear'){
+      pauseContent.innerHTML=`<div class="shop-hero"><span class="shop-rarity">SCRAP WORKSHOP</span><strong>${scrapChips} scrap chips</strong><p>Permanent utility fittings for exploring. Gear is optional and does not give a competitive race advantage.</p></div><div class="pause-grid">${fieldGear.map(g=>{const owned=ownedGear.has(g.id);return `<div class="pause-card ${owned?'owned':''}"><div class="swatch" style="display:grid;place-items:center;font-size:25px;color:#f5dc9a;background:#243d40">${g.icon}</div><strong>${escHtml(g.name)}</strong><small>${escHtml(g.desc)}<br>${owned?'Already fitted':g.price+' scrap chips'}</small><button class="${owned?'secondary':'primary'}" data-buy-gear="${g.id}" ${owned||scrapChips<g.price?'disabled':''}>${owned?'Owned':scrapChips<g.price?'Need '+(g.price-scrapChips)+' more':'Buy · '+g.price}</button></div>`;}).join('')}</div><div class="pause-banner">Scrap earned ${totalScrapEarned} · spent ${totalScrapSpent} · balance ${scrapChips}.</div>`;
     }else if(tab==='trophies'){
       const hidden=findableTrophies.map(t=>({name:t.name,desc:t.description,done:collectedFoundTrophies.has(t.id),tag:t.zone}));
       const missions=npcs.map(n=>({name:n.quest.trophy,desc:`${n.name} · ${n.quest.description}`,done:completedQuestIds.has(n.quest.id),active:activeQuestId===n.quest.id,tag:zoneInfo[n.zone].name,progress:n.quest.type==='collect'?`${missionCount(n)}/3 items found`:n.quest.type==='land'?'Land on target ledge':'Reach target'}));
-      const list=[...hidden,...missions,{name:'Home at Last',desc:'Reach Jeff at the top of the Trashlands and complete the ending.',done:endingUnlocked,active:false,tag:"JEFF'S BLOCK"}].sort((a,b)=>(a.done===b.done?0:a.done?-1:1));
-      pauseContent.innerHTML=`<div class="pause-banner">${trophyCount()} trophies collected · ${findableTrophies.length-collectedFoundTrophies.size} hidden keepsakes remain out in the world.</div><div class="pause-grid">${list.map(t=>`<div class="pause-card ${t.done?'owned':t.active?'active-mission':'locked'}"><strong>${t.done?'★':t.active?'▶':'◇'} ${escHtml(t.name)}</strong><small>${escHtml(t.tag)}<br>${escHtml(t.desc)}${t.progress?`<br><b>${escHtml(t.progress)}</b>`:''}</small><small style="color:${t.done?'#c6f06c':t.active?'#ffd08a':'#84999d'}">${t.done?'UNLOCKED':t.active?'MISSION ACTIVE':'NOT FOUND'}</small></div>`).join('')}</div>`;
+      const longStories=questlineDefs.map(q=>({name:q.title,desc:`Resident story · ${q.description}`,done:!!questlineProgress[q.id]?.completed,active:activeQuestlineId===q.id,tag:zoneInfo[q.zone].name}));
+      const relicAwards=secretRooms.map(r=>({name:`${r.name} Relic`,desc:'Recover the keepsake hidden inside this secret room.',done:collectedSecretRelics.has(r.relic.id),active:false,tag:zoneInfo[r.zone].name}));
+      const trialAwards=zoneInfo.map((z,i)=>({name:`${z.name} Climbing Trial`,desc:'Complete three clean landings on different platforms before time expires.',done:!!trialMedals[i],active:activeRegionalTrial?.zone===i,tag:`${(trialMedals[i]||'NOT EARNED').toUpperCase()} MEDAL`}));
+      const list=[...hidden,...missions,...longStories,...relicAwards,...trialAwards,{name:'Home at Last',desc:'Reach Jeff at the top of the Trashlands and complete the ending.',done:endingUnlocked,active:false,tag:"JEFF'S BLOCK"}].sort((a,b)=>(a.done===b.done?0:a.done?-1:1));
+      pauseContent.innerHTML=`<div class="pause-banner">${trophyCount()} / ${totalTrophyCount()} awards collected · ${findableTrophies.length-collectedFoundTrophies.size} hidden keepsakes remain out in the world.</div><div class="pause-grid">${list.map(t=>`<div class="pause-card ${t.done?'owned':t.active?'active-mission':'locked'}"><strong>${t.done?'★':t.active?'▶':'◇'} ${escHtml(t.name)}</strong><small>${escHtml(t.tag)}<br>${escHtml(t.desc)}${t.progress?`<br><b>${escHtml(t.progress)}</b>`:''}</small><small style="color:${t.done?'#c6f06c':t.active?'#ffd08a':'#84999d'}">${t.done?'UNLOCKED':t.active?'MISSION ACTIVE':'NOT FOUND'}</small></div>`).join('')}</div>`;
     }else if(tab==='shop'){
       const pool=shopCosmetics.filter(c=>shopFilter==='owned'?unlockedCosmetics.has(c.name):shopFilter==='affordable'?(!unlockedCosmetics.has(c.name)&&scrapChips>=c.price):shopFilter==='budget'?c.price<=110:true).sort((a,b)=>a.price-b.price||a.name.localeCompare(b.name));
       pauseContent.innerHTML=`<div class="shop-hero"><span class="shop-rarity">SCRAP EXCHANGE · WALLET</span><strong>${scrapChips} Scrap Chips</strong><p>Pick up shards, open caches, discover keepsakes and finish resident missions. Three consecutive pickups in a short chain add a +5 scrap bonus.</p></div><div class="shop-toolbar"><button class="${shopFilter==='all'?'active':''}" data-shop-filter="all">All looks</button><button class="${shopFilter==='budget'?'active':''}" data-shop-filter="budget">Under 110</button><button class="${shopFilter==='affordable'?'active':''}" data-shop-filter="affordable">Can afford</button><button class="${shopFilter==='owned'?'active':''}" data-shop-filter="owned">Owned</button><span class="tiny">${pool.length} items</span></div><div class="pause-grid">${pool.map(c=>{const owned=unlockedCosmetics.has(c.name),price=c.price,rarity=price>=180?'RARE':price>=135?'SPECIAL':'STANDARD';return `<div class="pause-card ${owned?'owned':''}"><div class="swatch" style="background:linear-gradient(100deg,${c.shell} 0 66%,${c.screen} 66% 100%)"></div><span class="shop-rarity">${rarity}</span><strong>${escHtml(c.name)}</strong><small>${owned?'Already in your collection':`${price} scrap chips`}</small><button class="${owned?'secondary':'primary'}" data-buy-skin="${escHtml(c.name)}" ${owned||scrapChips<price?'disabled':''}>${owned?'Owned':scrapChips<price?'Need '+(price-scrapChips)+' more':`Buy · ${price}`}</button></div>`;}).join('')||'<p>No items in this category yet.</p>'}</div>`;
@@ -1195,8 +1380,9 @@
     const price=shopPrices[name];if(!price||!cosmeticPalette[name])return;
     if(unlockedCosmetics.has(name)){setToast(`${name.toUpperCase()} IS ALREADY OWNED`);return;}
     if(scrapChips<price){setToast('NOT ENOUGH SCRAP CHIPS');return;}
-    scrapChips-=price;unlockedCosmetics.add(name);saveProgress();renderPauseTab('shop');setToast(`${name.toUpperCase()} PURCHASED · VISIT PHONE SKINS TO EQUIP`);playSfx('purchase');
+    if(!spendScrap(price))return;unlockedCosmetics.add(name);saveProgress();renderPauseTab('shop');setToast(`${name.toUpperCase()} PURCHASED · VISIT PHONE SKINS TO EQUIP`);playSfx('purchase');
   }
+  function buyFieldGear(id){const item=fieldGear.find(g=>g.id===id);if(!item||ownedGear.has(id))return;if(scrapChips<item.price){setToast('NOT ENOUGH SCRAP');return;}if(!spendScrap(item.price))return;ownedGear.add(id);saveProgress();playSfx('purchase');setToast(`${item.name.toUpperCase()} FITTED · FIELD GEAR UNLOCKED`);renderPauseTab('gear');}
   function equipSkin(name){if(name!=='Default'&&!unlockedCosmetics.has(name))return;if(name!=='Default'&&!cosmeticPalette[name])return;equippedCosmetic=name;saveProgress();renderPauseTab('skins');setToast(`EQUIPPED · ${name.toUpperCase()}`);playSfx('purchase');}
   function setReducedScreenShake(value){
     reducedScreenShake=!!value;
@@ -1231,7 +1417,7 @@
       const desc=document.createElement('span');desc.textContent=done?`Trophy: ${n.quest.trophy} · Cosmetic: ${n.quest.cosmetic}`:n.quest.description+(active&&n.quest.type==='collect'?` (${missionCount(n)}/3)`:'');
       entry.append(title,desc);host.appendChild(entry);
     }
-    document.getElementById('journalTrophyCount').textContent=`${trophyCount()} / ${npcs.length+findableTrophies.length+1} trophies`;
+    document.getElementById('journalTrophyCount').textContent=`${trophyCount()} / ${totalTrophyCount()} trophies`;
     document.getElementById('journalCosmeticCount').textContent=`${unlockedCosmetics.size} skins unlocked · ${scrapChips} scrap`;
   }
 
@@ -1436,16 +1622,19 @@
     landedState.rewardHandled=true;
     const angleError=Math.abs(wrapAngle(player.angle-(p.angle||0)));
     const cfg=DIFFICULTIES[difficultyId]||DIFFICULTIES.standard;
-    const clean=angleError<.46&&Math.abs(player.omega)<4.6&&impact<760;
+    const clean=angleError<(ownedGear.has('landing-grip')?.56:.46)&&Math.abs(player.omega)<(ownedGear.has('landing-grip')?5.0:4.6)&&impact<760;
     if(!clean){landingStreak=0;return;}
     if(multiplayer&&multiplayerMode!=='coop')return;
     const platformId=platforms.indexOf(p);
-    if(platformId<0||rewardedLandingPlatforms.has(platformId))return;
-    rewardedLandingPlatforms.add(platformId);cleanLandings++;landingStreak++;
+    if(platformId<0)return;
+    // Trials track unique platform IDs independently from one-time clean-landing scrap.
+    registerTrialLanding(p);
+    if(rewardedLandingPlatforms.has(platformId))return;
+    rewardedLandingPlatforms.add(platformId);cleanLandings++;landingStreak++;notifyNPCsOfEvent('land');
     bestLandingStreak=Math.max(bestLandingStreak,landingStreak);
     let reward=3,bonus='';
     if(landingStreak%4===0){reward+=10;bonus=' · STREAK BONUS +10';}
-    scrapChips+=reward;saveProgress();
+    awardScrap(reward);saveProgress();
     spawnBurst(player.x,player.y+extentY(player.angle)-5,8,'#c6f06c');
     setToast(`CLEAN LANDING · +${reward} SCRAP${bonus}`);if(landingStreak===1||landingStreak%4===0)narrate(landingStreak%4===0?'Four clean landings in a row. Precision appears to be contagious.':'A tidy landing. The narrator had prepared a sarcastic remark, but will save it.');playSfx('land');
   }
@@ -1556,6 +1745,7 @@
     if(state!=='playing') { updateRemoteSmoothing(dt); updateNetwork(dt); return; }
     time+=dt;
     updateDynamicPlatforms(dt);
+    updateLivingNPCs(dt);
     helpCooldown=Math.max(0,helpCooldown-dt);
     if(tether){ battery=Math.max(0,battery-dt*3.2); if(battery<=0){ tether=null; setToast('PITON POWER EMPTY'); } }
     battery=Math.min(100,battery+dt*(player.supported?1.2:0.18));
@@ -1656,7 +1846,9 @@
       resolvePlayerBumps();
       collectBatteryPickups();
       collectQuestPickups();
+      collectQuestlineItems();
       collectWorldPickups();
+      collectSecretAndStory();
       if(state!=='playing')break;
     }
 
@@ -1668,6 +1860,8 @@
     cameraY += (clamp(player.y-H*.60,0,worldHeight-H)-cameraY)*Math.min(1,dt*gameSettings.cameraFollow);
     cameraX += (clamp(player.x-W*.5,0,WORLD_W-W)-cameraX)*Math.min(1,dt*4.2);
     updateQuestProgress();
+    updateQuestlines();
+    updateRegionalTrial(dt);
     updateNarrator();
     checkNarratorNearMiss();
     if(!multiplayer&&time-lastAutoSave>8)saveRunSnapshot();
@@ -1686,7 +1880,7 @@
   function extentY(a){return Math.abs(Math.cos(a))*player.h/2+Math.abs(Math.sin(a))*player.w/2;}
   function fall(){
     if(state!=='playing')return;
-    falls++;landingStreak=0; shake=12; vibrate([25,35,25]);playSfx('fall');
+    falls++;landingStreak=0;notifyNPCsOfEvent('fall'); shake=12; vibrate([25,35,25]);playSfx('fall');
     const fallLines=falls===1?['And down we go. A first fall is practically an introduction.','A bold experiment in gravity. Gravity remains undefeated.']:falls<4?['The platform was there a moment ago. The narrator checked.','A setback. Not a disaster. The narrator is choosing to believe that.']:falls<8?['Another fall. At this point the ground is becoming a familiar character.','Flippy has discovered the fastest route down. It is not the intended route.']:['The fall count is becoming a body of work.','Perhaps the next attempt will be the one. The narrator has said this before.'];
     const line=climbStyle==='safety'&&lastSafeSurface?'Safety Net engaged. A helpful rescue, and a very small dent in Flippy’s dignity.':climbStyle==='iron'?'Iron Flippy. Back to the drain. The narrator will not say “I told you so”.':fallLines[(Math.random()*fallLines.length)|0];narrate(line,true);
     spawnBurst(player.x,player.y,25,'#f39a69');
@@ -1755,31 +1949,41 @@
     for(const item of batteryPickups){
       if(collectedPickups.has(item.id))continue;
       if(dist(player.x,player.y,item.x,item.y)<34){
-        collectedPickups.add(item.id);battery=Math.min(100,battery+38);
-        spawnBurst(item.x,item.y,13,'#a9f3ff');setToast('BATTERY +38');
+        collectedPickups.add(item.id);const charge=Math.round(38*(ownedGear.has('battery-sleeve')?1.25:1));battery=Math.min(100,battery+charge);
+        spawnBurst(item.x,item.y,13,'#a9f3ff');setToast(`BATTERY +${charge}`);
       }
     }
   }
+  let localRescueUntil=0,lastRescueRequestAt=0,lastLocalChatAt=0;
+  const seenChatIds=new Set();
+  function setChatOpen(open){const panel=document.getElementById('mpChatPanel');if(!panel)return;panel.hidden=!open;if(open)document.getElementById('mpChatInput').focus();else document.getElementById('mpChatInput').blur();}
+  function addChatMessage(msg){if(!msg)return;const id=String(msg.id||'').slice(0,60);if(id&&seenChatIds.has(id))return;if(id){seenChatIds.add(id);if(seenChatIds.size>180)seenChatIds.delete(seenChatIds.values().next().value);}const box=document.getElementById('mpChatMessages');const row=document.createElement('div');row.className='mp-chat-line'+(msg.system?' system':'');if(msg.system){row.textContent=String(msg.text||'').slice(0,180);}else{const name=document.createElement('b');name.textContent=String(msg.name||'Flippy').slice(0,16)+': ';row.appendChild(name);row.appendChild(document.createTextNode(String(msg.text||'').slice(0,140)));}box.appendChild(row);while(box.children.length>45)box.removeChild(box.firstChild);box.scrollTop=box.scrollHeight;}
+  function sendRoomChat(raw){if(!multiplayer){setToast('ROOM CHAT IS AVAILABLE WHILE ONLINE');return;}const text=String(raw||'').replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,140);if(!text)return;if(Date.now()-lastLocalChatAt<850){setToast('CHAT RATE LIMIT · TAKE A MOMENT');return;}lastLocalChatAt=Date.now();const packet={type:'chat',id:localId+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),name:localName,text};addChatMessage(packet);if(network.isHost)broadcastRoom(packet);else if(network.hostConn&&network.hostConn.open)try{network.hostConn.send(packet);}catch(_){setToast('CHAT MESSAGE COULD NOT SEND');}}
+  function requestRescue(){if(state!=='playing'||!multiplayer||multiplayerMode!=='coop'){setToast('RESCUE REQUESTS ARE AVAILABLE IN CO-OP CLIMB');return;}if(Date.now()-lastRescueRequestAt<9000){setToast('RESCUE SIGNAL RECHARGING');return;}lastRescueRequestAt=Date.now();localRescueUntil=Date.now()+18000;const packet={type:'rescueRequest',id:localId,x:Math.round(player.x),y:Math.round(player.y)};addChatMessage({id:'local-rescue-'+Date.now(),system:true,text:'You sent a rescue signal to the team.'});if(network.isHost)broadcastRoom({type:'rescuePing',id:localId,name:localName});else if(network.hostConn&&network.hostConn.open){try{network.hostConn.send(packet);}catch(_){localRescueUntil=0;setToast('RESCUE SIGNAL COULD NOT SEND');return;}}else{localRescueUntil=0;setToast('ROOM CONNECTION UNAVAILABLE');return;}setToast('RESCUE SIGNAL SENT · LOOK FOR A HELP BEAM');narrate('A rescue signal. The narrator hopes somebody brought a rope.',true);}
   function doHelpBeam(){
     if(state!=='playing')return;
     if(!multiplayer){setToast('HELP BEAM AVAILABLE IN ONLINE ROOMS');return;}
+    if(multiplayerMode!=='coop'){setToast('HELP BEAM IS ONLY AVAILABLE IN CO-OP CLIMB');return;}
     if(helpCooldown>0){setToast(`HELP BEAM RECHARGING · ${helpCooldown.toFixed(1)}s`);return;}
-    let target=null,nearest=300;
+    let target=null,nearest=360,rescueTarget=null,rescueDistance=360;
     for(const other of remotePlayers.values()){
-      const d=dist(player.x,player.y,other.x,other.y);
+      const d=dist(player.x,player.y,other.x,other.y);if(d>=360)continue;
+      if(other.needsRescue&&d<rescueDistance){rescueTarget=other;rescueDistance=d;}
       if(d<nearest){nearest=d;target=other;}
     }
+    target=rescueTarget||target;
     if(!target){setToast('NO TEAMMATE IN HELP-BEAM RANGE');return;}
-    const msg={type:'assist',targetId:target.id,fromId:localId,fromName:localName};
-    if(network.isHost){broadcastRoom(msg);if(target.id===localId)applyHelpImpulse(msg.fromName);}
+    const rescue=!!target.needsRescue;const msg={type:'assist',targetId:target.id,fromId:localId,fromName:localName,rescue};
+    if(network.isHost){broadcastRoom(msg);if(target.id===localId)applyHelpImpulse(msg.fromName,rescue);}
     else if(network.hostConn&&network.hostConn.open)network.hostConn.send(msg);
-    helpCooldown=4.5;setToast(`HELP BEAM → ${target.name||'TEAMMATE'}`);narrate(`A helping hand from ${target.name||'a teammate'}. The narrator approves of teamwork.`,true);
+    helpCooldown=4.5;if(rescue){awardScrap(5);saveProgress();setToast(`RESCUE BEAM SENT → ${target.name||'TEAMMATE'} · +5 TEAM SCRAP`);}else setToast(`HELP BEAM → ${target.name||'TEAMMATE'}`);narrate(`A helping hand from ${target.name||'a teammate'}. The narrator approves of teamwork.`,true);
   }
-  function applyHelpImpulse(fromName){
-    if(battery<15){setToast('HELP BEAM RECEIVED · BATTERY TOO LOW');return;}
-    battery-=15;tether=null;player.vy-=460;player.vx+=(Math.random()-.5)*100;
+  function applyHelpImpulse(fromName,rescue=false){
+    // A requested rescue must still work when the stranded phone has run out of battery.
+    if(!rescue&&battery<15){setToast('HELP BEAM RECEIVED · BATTERY TOO LOW');return;}
+    if(!rescue)battery-=15;tether=null;player.vy-=rescue?680:460;player.vx+=(Math.random()-.5)*(rescue?145:100);localRescueUntil=0;
     player.grounded=false;player.supported=false;player.canJump=false;shake=Math.max(shake,5);
-    spawnBurst(player.x,player.y,18,'#e2aaff');setToast(`HELPED BY ${String(fromName||'A FRIEND').toUpperCase()}`);narrate(`A lift from ${fromName||'a friend'}. Do try to land somewhere useful.`,true);
+    spawnBurst(player.x,player.y,18,'#e2aaff');if(rescue){awardScrap(10);setToast(`RESCUED BY ${String(fromName||'A FRIEND').toUpperCase()} · +10 TEAM SCRAP`);addChatMessage({id:'rescue-'+Date.now(),system:true,text:`${fromName||'A teammate'} pulled you back into the climb!`});}else setToast(`HELPED BY ${String(fromName||'A FRIEND').toUpperCase()}`);narrate(`A lift from ${fromName||'a friend'}. Do try to land somewhere useful.`,true);saveProgress();
   }
   function recover(){
     if(state==='menu') return;
@@ -1818,7 +2022,7 @@
   function completeWin(){
     if(state==='won'||state==='ending')return;
     if(!endingUnlocked){
-      endingUnlocked=true;unlockedCosmetics.add('Homecoming Gold');scrapChips+=100;
+      endingUnlocked=true;unlockedCosmetics.add('Homecoming Gold');awardScrap(100);
       setToast('HOME AT LAST · TROPHY + HOMECOMING GOLD · +100 SCRAP');
       saveProgress();
     }
@@ -1850,6 +2054,7 @@
     drawWorldDecor();
     drawWorldPaths();
     for(const p of platforms) drawPlatform(p);
+    drawSecretDoors();
     drawNPCs();
     drawQuestObjects();
     drawBatteryPickups();
@@ -2149,10 +2354,13 @@
       if(done||active){ctx.fillStyle=done?'#d5f79a':'#ffe38c';ctx.font='900 17px system-ui';ctx.textAlign='center';ctx.fillText(done?'✓':'!',0,-31);}
       ctx.restore();
       ctx.fillStyle='#f5f6eb';ctx.strokeStyle='#16232a';ctx.lineWidth=3;ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.strokeText(n.name,n.x,n.y-41);ctx.fillText(n.name,n.x,n.y-41);
+      if(n.mood==='happy'||n.mood==='curious'||n.mood==='busy'||n.mood==='resting'){ctx.save();ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillStyle=n.mood==='happy'?'#c6f06c':n.mood==='curious'?'#ffe19a':n.mood==='resting'?'#b4c6dc':'#9bdcf0';ctx.fillText(n.mood==='happy'?'♥':n.mood==='curious'?'…':n.mood==='resting'?'Zz':'⚙',n.x,n.y-56);ctx.restore();}
+      if(n.bubbleTimer>0&&n.bubble){ctx.save();ctx.font='700 10px system-ui';const bw=Math.min(176,ctx.measureText(n.bubble).width+18),bx=n.x-bw/2,by=n.y-75;ctx.fillStyle='#f4f2df';ctx.strokeStyle='#344448';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(bx,by,bw,23,7);ctx.fill();ctx.stroke();ctx.fillStyle='#1b2c2e';ctx.textAlign='center';ctx.fillText(n.bubble,n.x,by+15);ctx.restore();}
     }
   }
   function drawQuestObjects(){
     const current=activeMission();
+    if(activeQuestlineId){const line=questlineDefs.find(q=>q.id===activeQuestlineId);const stage=line?.stages[questlineState(line).stage];if(stage?.type==='collect')for(const item of stage.items||[]){if(collectedQuestlineItems.has(item.id))continue;ctx.save();ctx.translate(item.x,item.y+Math.sin(time*4+item.x*.01)*3);ctx.shadowColor='#a9eaff';ctx.shadowBlur=15;ctx.fillStyle='#a9eaff';ctx.beginPath();ctx.arc(0,0,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#244f60';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('◆',0,3);ctx.restore();}if(stage?.target){ctx.save();ctx.strokeStyle='#a9eaff';ctx.lineWidth=3;ctx.setLineDash([6,5]);ctx.beginPath();ctx.arc(stage.target.x,stage.target.y,23+Math.sin(time*4)*4,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.restore();}if(stage?.platform){ctx.save();ctx.strokeStyle='#a9eaff';ctx.lineWidth=3;ctx.strokeRect(stage.platform.x,stage.platform.y-10,stage.platform.w,20);ctx.restore();}}
     for(const item of questPickups){
       if(!current||item.questId!==current.quest.id||collectedQuestItems.has(item.id))continue;
       ctx.save();ctx.translate(item.x,item.y);ctx.shadowColor='#ffe08a';ctx.shadowBlur=16;ctx.fillStyle='#ffe18c';ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#9d6936';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText('★',0,4);ctx.restore();
@@ -2162,6 +2370,7 @@
       ctx.save();ctx.globalAlpha=.85;ctx.strokeStyle='#ffe18c';ctx.lineWidth=3;ctx.setLineDash([7,6]);ctx.beginPath();ctx.arc(t.x,t.y,23+Math.sin(time*4)*5,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ffe18c';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText(current.quest.type==='land'?'LAND HERE':'MISSION',t.x,t.y-32);ctx.restore();
     }
   }
+  function drawSecretDoors(){for(const r of secretRooms){const x=insideSecretRoom===r.id?r.platforms[0].x+r.platforms[0].w/2:r.doorX,y=insideSecretRoom===r.id?r.platforms[0].y-43:r.doorY;if(x<cameraX-90||x>cameraX+W+90||y<cameraY-90||y>cameraY+H+90)continue;ctx.save();ctx.translate(x,y);ctx.shadowColor='#ddbd72';ctx.shadowBlur=13;ctx.fillStyle='#182d2b';ctx.strokeStyle='#d6bd79';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(-17,-32,34,34,15);ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle='#e5d49b';ctx.beginPath();ctx.arc(0,-15,4,0,Math.PI*2);ctx.fill();ctx.font='900 8px system-ui';ctx.textAlign='center';ctx.fillText(insideSecretRoom===r.id?'EXIT':'SECRET',0,-39);ctx.restore();}}
   function drawGoal(){
     const p=platforms.find(v=>v.goal);if(!p||p.y<cameraY-220||p.y>cameraY+H+200||p.x+p.w<cameraX-100||p.x>cameraX+W+100)return;
     const x=p.x+p.w/2,y=p.y-16;
@@ -2192,6 +2401,8 @@
       if(collectedMemoryIds.has(m.id)||m.x<cameraX-40||m.x>cameraX+W+40||m.y<cameraY-40||m.y>cameraY+H+40)continue;
       ctx.save();ctx.translate(m.x,m.y+Math.sin(time*2.8+m.x*.01)*4);ctx.rotate(-.12);ctx.shadowColor='#a9f2e2';ctx.shadowBlur=18;ctx.fillStyle='#baf4e5';ctx.fillRect(-9,-12,18,24);ctx.fillStyle='#396e68';ctx.fillRect(-5,-6,10,2);ctx.fillRect(-5,0,8,2);ctx.fillRect(-5,6,10,2);ctx.restore();
     }
+    for(const room of secretRooms){if(collectedSecretRelics.has(room.relic.id))continue;const r=room.relic;if(r.x<cameraX-30||r.x>cameraX+W+30||r.y<cameraY-30||r.y>cameraY+H+30)continue;ctx.save();ctx.translate(r.x,r.y+Math.sin(time*3+r.x*.01)*4);ctx.shadowColor='#e6cd7c';ctx.shadowBlur=18;ctx.fillStyle='#e4c879';ctx.beginPath();ctx.moveTo(0,-13);ctx.lineTo(11,0);ctx.lineTo(0,13);ctx.lineTo(-11,0);ctx.closePath();ctx.fill();ctx.restore();}
+    for(const f of storyFragments){if(collectedStoryFragments.has(f.id)||f.x<cameraX-30||f.x>cameraX+W+30||f.y<cameraY-30||f.y>cameraY+H+30)continue;ctx.save();ctx.translate(f.x,f.y+Math.sin(time*2+f.x*.02)*3);ctx.rotate(-.14);ctx.shadowColor='#b8f0e5';ctx.shadowBlur=14;ctx.fillStyle='#c5eee1';ctx.fillRect(-8,-11,16,22);ctx.fillStyle='#4a7770';ctx.fillRect(-4,-5,8,2);ctx.fillRect(-4,0,7,2);ctx.fillRect(-4,5,8,2);ctx.restore();}
   }
   function drawTether(){
     if(!tether)return;
@@ -2211,6 +2422,7 @@
       ctx.fillStyle='#173e39';ctx.fillRect(-5,-17,3,3);ctx.fillRect(3,-17,3,3);ctx.fillRect(-4,-10,8,2);
       ctx.restore();
       ctx.save();ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillStyle='#f0f7ee';ctx.strokeStyle='#10191f';ctx.lineWidth=3;ctx.strokeText(other.name||'Flippy',other.x,other.y-42);ctx.fillText(other.name||'Flippy',other.x,other.y-42);ctx.restore();
+      if(other.needsRescue){ctx.save();ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillStyle='#ffd77e';ctx.strokeStyle='#1a2020';ctx.lineWidth=3;ctx.strokeText('RESCUE!',other.x,other.y-59);ctx.fillText('RESCUE!',other.x,other.y-59);ctx.restore();}
       if(other.tether){ctx.save();ctx.strokeStyle='#a9e8f2';ctx.globalAlpha=.7;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(other.tether.x,other.tether.y);ctx.lineTo(other.x,other.y);ctx.stroke();ctx.restore();}
     }
   }
@@ -2264,7 +2476,7 @@
       ctx.fillStyle='#d9eddf';ctx.font='900 13px system-ui';ctx.textAlign='left';
       ctx.fillText(multiplayer?roomModeName(multiplayerMode).toUpperCase():(mode==='hard'?'HARD CLIMB':'CHILL CLIMB')+' · '+DIFFICULTIES[difficultyId].name.toUpperCase(),27,34);
       ctx.fillStyle=accent;ctx.font='900 11px system-ui';ctx.fillText(zone.name,27,52);
-      ctx.fillStyle='#9bb0b4';ctx.font='11px system-ui';ctx.fillText(`TIME ${formatTime(time)}   FALLS ${falls}   TROPHIES ${trophyCount()}/${npcs.length+findableTrophies.length+1}`,27,70);
+      ctx.fillStyle='#9bb0b4';ctx.font='11px system-ui';ctx.fillText(`TIME ${formatTime(time)}   FALLS ${falls}   TROPHIES ${trophyCount()}/${totalTrophyCount()}`,27,70);
       ctx.fillStyle=player.canJump?accent:'#9bb0b4';ctx.font='10px system-ui';
       ctx.fillText(player.canJump?'SURFACE CONTACT · JUMP READY':player.jumpCooldown>0?`JUMP COOLDOWN ${Math.ceil(player.jumpCooldown*1000)} ms`:'AIRBORNE · FIND A SURFACE',27,88);
       ctx.fillStyle='#789198';ctx.fillText('BATTERY',27,111);ctx.fillStyle='#31444a';ctx.fillRect(83,102,120,9);ctx.fillStyle=battery>25?'#8ed8b5':'#ee9b71';ctx.fillRect(83,102,120*(battery/100),9);ctx.fillStyle='#cbd8d4';ctx.fillText(`${Math.round(battery)}%`,210,111);
@@ -2274,7 +2486,7 @@
     const progress=clamp((START_PLAYER_Y-player.y)/(START_PLAYER_Y-42),0,1);
     if(gameSettings.hud.progress){ctx.fillStyle='#0b141bdc';ctx.beginPath();ctx.roundRect(W-177,14,162,65,10);ctx.fill();ctx.strokeStyle=accent+'55';ctx.stroke();ctx.fillStyle='#9bb0b4';ctx.font='10px system-ui';ctx.textAlign='left';ctx.fillText('CLIMB PROGRESS',W-163,33);ctx.fillStyle='#31444a';ctx.fillRect(W-163,43,132,8);ctx.fillStyle=accent;ctx.fillRect(W-163,43,132*progress,8);ctx.fillStyle='#e6f0e8';ctx.font='10px system-ui';ctx.fillText(`${Math.round(progress*100)}%`,W-27,51);}
     if(gameSettings.hud.map)drawMinimap();
-    if(gameSettings.hud.prompts){const npc=nearestNPC(),mission=activeMission();let prompt='ROTATE · AIM · VIBRATE · TRY NOT TO FALL';if(npc)prompt=`${keyLabel(keyBindings.interact)} · TALK TO ${npc.name.toUpperCase()}`;else if(mission){prompt=mission.quest.type==='collect'?`${mission.name.toUpperCase()} · ${missionCount(mission)}/3 ITEMS`:`MISSION · ${mission.quest.title.toUpperCase()}`;}ctx.fillStyle='#0b141bdc';ctx.beginPath();ctx.roundRect(W/2-240,H-38,480,25,7);ctx.fill();ctx.fillStyle='#d5e2dd';ctx.font='10px system-ui';ctx.textAlign='center';ctx.fillText(prompt,W/2,H-21);}
+    if(gameSettings.hud.prompts){const npc=nearestNPC(),door=findNearbySecretDoor(),mission=activeMission();let prompt='ROTATE · AIM · VIBRATE · TRY NOT TO FALL';if(insideSecretRoom)prompt=`${keyLabel(keyBindings.interact)} · EXIT SECRET ROOM`;else if(door)prompt=`${keyLabel(keyBindings.interact)} · ENTER ${door.name.toUpperCase()}`;else if(npc)prompt=`${keyLabel(keyBindings.interact)} · TALK TO ${npc.name.toUpperCase()}`;else if(activeQuestlineId){const q=questlineDefs.find(v=>v.id===activeQuestlineId),stage=q?.stages[questlineState(q).stage];if(stage)prompt=`QUESTLINE · ${q.title.toUpperCase()} · ${stage.label.toUpperCase()}`;}else if(mission){prompt=mission.quest.type==='collect'?`${mission.name.toUpperCase()} · ${missionCount(mission)}/3 ITEMS`:`MISSION · ${mission.quest.title.toUpperCase()}`;}if(activeRegionalTrial)prompt+=` · TRIAL ${activeRegionalTrial.landed.size}/3`;ctx.fillStyle='#0b141bdc';ctx.beginPath();ctx.roundRect(W/2-240,H-38,480,25,7);ctx.fill();ctx.fillStyle='#d5e2dd';ctx.font='10px system-ui';ctx.textAlign='center';ctx.fillText(prompt,W/2,H-21);}
     if(gameSettings.hud.toasts&&toastTime>0){ctx.globalAlpha=Math.min(1,toastTime*1.6);ctx.fillStyle='#09131bf0';ctx.beginPath();ctx.roundRect(W/2-240,H-82,480,34,9);ctx.fill();ctx.strokeStyle=accent;ctx.stroke();ctx.fillStyle='#effaff';ctx.font='800 11px system-ui';ctx.textAlign='center';ctx.fillText(toastText.length>76?toastText.slice(0,73)+'…':toastText,W/2,H-61);}
     if(raceWinner){ctx.fillStyle='#09131bdc';ctx.beginPath();ctx.roundRect(W/2-150,58,300,32,8);ctx.fill();ctx.fillStyle='#ffe19a';ctx.font='800 12px system-ui';ctx.textAlign='center';ctx.fillText(`FIRST TO JEFF: ${raceWinner}`,W/2,79);}
     ctx.restore();
@@ -2356,7 +2568,7 @@
     network.isHost=false;network.roomCode='';network.phase='lobby';network.started=false;network.slot=0;network.status='offline';
     multiplayer=false;multiplayerMode='solo';remotePlayers.clear();roomMembers.clear();tether=null;raceWinner='';
     if(checkpointOverlay)checkpointOverlay.classList.add('hidden');
-    document.getElementById('leaveRoomSmall').style.display='none';
+    document.getElementById('leaveRoomSmall').style.display='none';document.getElementById('mpChat').hidden=true;setChatOpen(false);
     roomOverlay.classList.add('hidden');
     document.getElementById('teleportSmall').style.display='none';
     if(returnToMenu){state='menu';startOverlay.classList.remove('hidden');pauseOverlay.classList.add('hidden');winOverlay.classList.add('hidden');}
@@ -2380,14 +2592,14 @@
       targetX:clamp(x,-100,WORLD_W+100),targetY:clamp(y,-300,worldHeight+300),targetAngle:clamp(a,-1000,1000),
       vx:clamp(Number(raw.vx)||0,-3500,3500),vy:clamp(Number(raw.vy)||0,-3500,3500),
       battery:clamp(Number(raw.battery)||0,0,100),tether:raw.tether&&Number.isFinite(Number(raw.tether.x))&&Number.isFinite(Number(raw.tether.y))?{x:Number(raw.tether.x),y:Number(raw.tether.y)}:null,
-      color:raw.color||'#91a6b2',screen:raw.screen||'#b7e5c6',slot:Number(raw.slot)||0,lastSeen:performance.now()
+      color:raw.color||'#91a6b2',screen:raw.screen||'#b7e5c6',slot:Number(raw.slot)||0,needsRescue:!!raw.needsRescue,lastSeen:performance.now()
     };
     if(current){Object.assign(current,next);}
     else{next.x=next.targetX;next.y=next.targetY;next.angle=next.targetAngle;remotePlayers.set(id,next);}
   }
   function localSnapshot(){
     const palette=playerPalette();
-    return {id:localId,name:localName,x:player.x,y:player.y,vx:player.vx,vy:player.vy,angle:player.angle,battery,tether:tether?{x:tether.x,y:tether.y}:null,slot:network.slot,color:palette.shell,screen:palette.screen};
+    return {id:localId,name:localName,x:player.x,y:player.y,vx:player.vx,vy:player.vy,angle:player.angle,battery,tether:tether?{x:tether.x,y:tether.y}:null,slot:network.slot,color:palette.shell,screen:palette.screen,needsRescue:Date.now()<(localRescueUntil||0)};
   }
   function updateRemoteSmoothing(dt){
     const now=performance.now();
@@ -2407,7 +2619,7 @@
     if(netSendTimer>=SNAPSHOT_INTERVAL){
       netSendTimer=0;
       if(network.isHost){
-        const players=[localSnapshot(),...Array.from(remotePlayers.values()).map(o=>({id:o.id,name:o.name,x:o.x,y:o.y,vx:o.vx,vy:o.vy,angle:o.angle,battery:o.battery,tether:o.tether,slot:o.slot,color:o.color,screen:o.screen}))];
+        const players=[localSnapshot(),...Array.from(remotePlayers.values()).map(o=>({id:o.id,name:o.name,x:o.x,y:o.y,vx:o.vx,vy:o.vy,angle:o.angle,battery:o.battery,tether:o.tether,slot:o.slot,color:o.color,screen:o.screen,needsRescue:o.needsRescue}))];
         network.snapshotSeq=(network.snapshotSeq+1)>>>0;
         broadcastRoom({type:'snapshot',seq:network.snapshotSeq,players,serverTime:Date.now()});
       }else if(network.hostConn&&network.hostConn.open){
@@ -2468,11 +2680,18 @@
       safeRemoteState(conn._playerId,message.player,member&&member.name);
       return;
     }
-    if(message.type==='assist'){
+    if(message.type==='assist'&&conn._playerId&&roomMembers.has(conn._playerId)&&network.mode==='coop'){
       const targetId=String(message.targetId||'');
-      if(targetId===localId)applyHelpImpulse(message.fromName);
-      broadcastRoom({type:'assist',targetId,fromName:cleanName(message.fromName)});return;
+      if(targetId!==localId&&!roomMembers.has(targetId))return;
+      if(Date.now()-(conn._lastAssistAt||0)<350)return;
+      conn._lastAssistAt=Date.now();
+      const sender=roomMembers.get(conn._playerId);
+      const packet={type:'assist',targetId,fromName:cleanName(sender?.name||'A teammate'),rescue:!!message.rescue};
+      if(targetId===localId)applyHelpImpulse(packet.fromName,packet.rescue);
+      broadcastRoom(packet);return;
     }
+    if(message.type==='chat'&&conn._playerId){const member=roomMembers.get(conn._playerId);const text=String(message.text||'').replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,140);if(!text||Date.now()-(conn._lastChatAt||0)<850)return;conn._lastChatAt=Date.now();const packet={type:'chat',id:String(message.id||makeId()).slice(0,60),name:cleanName(member?.name||'Flippy'),text};addChatMessage(packet);broadcastRoom(packet);return;}
+    if(message.type==='rescueRequest'&&conn._playerId&&roomMembers.has(conn._playerId)&&network.mode==='coop'){if(Date.now()-(conn._lastRescueAt||0)<5000)return;conn._lastRescueAt=Date.now();const member=roomMembers.get(conn._playerId);const packet={type:'rescuePing',id:conn._playerId,name:cleanName(member?.name||'Flippy')};broadcastRoom(packet);addChatMessage({id:'host-'+packet.id+'-'+Date.now(),system:true,text:`${packet.name} needs a rescue! Use H / Help Beam to send a lift.`});return;}
     if(message.type==='checkpoint'&&network.mode==='coop'&&message.checkpoint){
       const cp=message.checkpoint,record=checkpointRecords.find(c=>c.platform===Number(cp.platform));
       if(record){
@@ -2522,7 +2741,9 @@
       return;
     }
     if(message.type==='start'){network.started=true;network.difficulty=DIFFICULTIES[message.difficulty]?message.difficulty:network.difficulty;network.climbStyle=CLIMB_STYLES[message.climbStyle]?message.climbStyle:network.climbStyle;startNetworkGame(message.mode||network.mode,Number(message.slot??network.slot),network.difficulty,network.climbStyle);return;}
-    if(message.type==='assist'&&message.targetId===localId){applyHelpImpulse(message.fromName);return;}
+    if(message.type==='assist'&&message.targetId===localId){applyHelpImpulse(message.fromName,!!message.rescue);return;}
+    if(message.type==='chat'){addChatMessage(message);return;}
+    if(message.type==='rescuePing'){addChatMessage({id:'rescue-ping-'+message.id+'-'+Date.now(),system:true,text:`${cleanName(message.name)} needs a rescue! Use H / Help Beam to help.`});setToast(`${cleanName(message.name).toUpperCase()} NEEDS A RESCUE`);return;}
     if(message.type==='checkpoint'&&network.mode==='coop'&&message.checkpoint){
       const cp=message.checkpoint,record=checkpointRecords.find(c=>c.platform===Number(cp.platform));
       if(record){checkpoint={id:record.id,x:record.x,y:record.y,angle:0,platform:record.platform};unlockedCheckpointIds.add(record.id);saveProgress();setToast('TEAM CHECKPOINT REACHED');}return;
@@ -2602,7 +2823,7 @@
     checkpoint={id:'storm-drain',x:START_X,y:START_PLATFORM_Y,angle:0,platform:platforms.indexOf(startPlatform)};battery=100;tether=null;helpCooldown=0;raceWinner='';activeQuestId='';collectedQuestItems.clear();collectedPickups.clear();landingStreak=0;
     resetPlayer(false);
     roomOverlay.classList.add('hidden');startOverlay.classList.add('hidden');pauseOverlay.classList.add('hidden');winOverlay.classList.add('hidden');
-    document.getElementById('leaveRoomSmall').style.display='inline-block';
+    document.getElementById('leaveRoomSmall').style.display='inline-block';document.getElementById('mpChat').hidden=false;document.getElementById('mpChatPanel').hidden=true;document.getElementById('mpChatMessages').innerHTML='';addChatMessage({id:'room-start-'+Date.now(),system:true,text:`Connected to ${roomModeName(multiplayerMode)}. Be kind, climb together.`});
     document.getElementById('teleportSmall').style.display=(multiplayerMode==='coop'&&climbStyle!=='iron')?'':'none';
     setToast(`${roomModeName(multiplayerMode).toUpperCase()} · GOOD LUCK`);
   }
@@ -2636,6 +2857,9 @@
     const tab=e.target.closest('[data-pause-tab]');if(tab){renderPauseTab(tab.dataset.pauseTab);return;}
     const tp=e.target.closest('[data-teleport]');if(tp){teleportToCheckpoint(tp.dataset.teleport);return;}
     const track=e.target.closest('[data-track-quest]');if(track){trackMission(track.dataset.trackQuest);return;}
+    const ql=e.target.closest('[data-questline-track]');if(ql){const line=questlineDefs.find(q=>q.id===ql.dataset.questlineTrack);if(line){if(activeQuestlineId===line.id){activeQuestlineId='';setToast('QUESTLINE TRACKING STOPPED');saveProgress();renderPauseTab('questlines');}else startQuestline(line);}return;}
+    const trial=e.target.closest('[data-start-trial]');if(trial){startRegionalTrial(Number(trial.dataset.startTrial));return;}
+    const gear=e.target.closest('[data-buy-gear]');if(gear){buyFieldGear(gear.dataset.buyGear);return;}
     const buy=e.target.closest('[data-buy-skin]');if(buy){buySkin(buy.dataset.buySkin);return;}
     const equip=e.target.closest('[data-equip-skin]');if(equip){equipSkin(equip.dataset.equipSkin);return;}
     const shop=e.target.closest('[data-shop-filter]');if(shop){shopFilter=shop.dataset.shopFilter;renderPauseTab('shop');return;}
@@ -2685,6 +2909,10 @@
   document.querySelector('[data-title-action="resetHud"]').addEventListener('click',()=>{gameSettings.hud={status:true,map:true,progress:true,prompts:true,toasts:true};document.querySelectorAll('[data-title-hud]').forEach(el=>el.checked=true);saveUserSettings();setToast('DEFAULT HUD RESTORED');});
   document.getElementById('gameModeSelect').addEventListener('change',updateTitleSettingsSummary);
   document.getElementById('climbStyleSelect').addEventListener('change',()=>{const v=document.getElementById('climbStyleSelect').value;document.getElementById('climbStyleDescription').textContent=CLIMB_STYLES[v]?.description||'';updateTitleSettingsSummary();});
+  document.getElementById('storyContinueButton').addEventListener('click',closeStoryScene);
+  document.getElementById('mpChatToggle').addEventListener('click',()=>setChatOpen(true));
+  document.getElementById('mpChatClose').addEventListener('click',()=>setChatOpen(false));
+  document.getElementById('mpChatForm').addEventListener('submit',e=>{e.preventDefault();const input=document.getElementById('mpChatInput');sendRoomChat(input.value);input.value='';input.focus();});
   document.getElementById('titleFullscreenButton').addEventListener('click',toggleFullscreen);
   document.getElementById('pauseFullscreenButton').addEventListener('click',toggleFullscreen);
   document.getElementById('newGameButton').addEventListener('click',()=>{ensureAudio();playSfx('start');startSoundtrack();enterFullscreen();startGame(document.getElementById('gameModeSelect').value,false);});
@@ -2699,6 +2927,9 @@
   // they remain stable across keyboard layouts.
   window.addEventListener('keydown',e=>{
     const k=e.key,code=e.code;
+    if(e.target&&e.target.id==='mpChatInput'){if(code==='Escape'){setChatOpen(false);e.preventDefault();}return;}
+    if(state==='story'&&(code==='Enter'||code==='Space'||code==='Escape')){e.preventDefault();closeStoryScene();return;}
+    if(state==='playing'&&multiplayer&&code==='Enter'){e.preventDefault();setChatOpen(true);return;}
     if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(code))e.preventDefault();
     if(state==='ending'&&(code==='Enter'||code==='Space'||code==='Escape')){finishEndingSequence();return;}
     if(rebindingAction){
@@ -2716,6 +2947,7 @@
     if(pressed('trophies')&&!e.repeat&&(state==='playing'||state==='paused'))openPauseMenu('trophies');
     if(pressed('checkpoints')&&!e.repeat&&(state==='playing'||state==='paused'))openCheckpointMenu();
     if(pressed('helpBeam')&&!e.repeat&&state==='playing')doHelpBeam();
+    if(pressed('requestRescue')&&!e.repeat&&state==='playing')requestRescue();
     if(pressed('fullscreen')&&!e.repeat)toggleFullscreen();
     if(pressed('restart')&&!e.repeat&&state!=='menu'&&state!=='won')restart();
     if(pressed('recover')&&!e.repeat&&state!=='menu')recover();
@@ -2739,7 +2971,7 @@
     const dt=Math.min(.033,(ts-lastFrame)/1000||0);lastFrame=ts;
     update(dt);draw();requestAnimationFrame(loop);
   }
-  const npcStat=document.getElementById('npcMissionStat');if(npcStat)npcStat.textContent=`${npcs.length} NPC MISSIONS`;const trophyStat=document.getElementById('trophyTotalStat');if(trophyStat)trophyStat.textContent=`${npcs.length+findableTrophies.length+1} TROPHIES`;
+  const npcStat=document.getElementById('npcMissionStat');if(npcStat)npcStat.textContent=`${npcs.length} NPCs · ${questlineDefs.length} STORIES`;const trophyStat=document.getElementById('trophyTotalStat');if(trophyStat)trophyStat.textContent=`${totalTrophyCount()} TROPHIES`;
   resizeGameCanvas();applyDifficulty(difficultyId);applyUITheme();updateContinueButton();if(savedRun){document.getElementById('gameModeSelect').value=savedRun.mode==='hard'?'hard':'chill';if(CLIMB_STYLES[savedRun.climbStyle])document.getElementById('climbStyleSelect').value=savedRun.climbStyle;document.getElementById('climbStyleDescription').textContent=CLIMB_STYLES[savedRun.climbStyle||'classic'].description;}updateTitleSettingsSummary();
   requestAnimationFrame(loop);
   // Canvas uses window-sized logical coordinates and a capped device pixel ratio.
