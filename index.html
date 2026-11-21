@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#111820">
-<title>Flipping Is Hard 2D — PC Edition</title>
+<title>Flipping Is Hard 2D — PC Edition · Living Trashlands</title>
 <style>
   :root { color-scheme: dark; --ink:#eaf2f5; --muted:#a2b3bb; --panel:#19242c; --line:#344650; --lime:#c6f06c; --orange:#ffb45c; }
   * { box-sizing:border-box; }
@@ -245,10 +245,38 @@
   .mp-chat-toggle{width:100%;padding:9px 13px;background:#14252be8;border:1px solid #83b3a566;border-radius:9px;color:#e8f4eb;font-weight:900;letter-spacing:.08em;text-align:left;cursor:pointer}
   .mp-chat-panel{margin-top:8px;background:#0a1515f2;border:1px solid #80a99b66;border-radius:12px;padding:10px;box-shadow:0 14px 42px #0009}
   .mp-chat-panel header{display:flex;justify-content:space-between;align-items:center;color:#dff1e6;font-size:11px;letter-spacing:.1em;margin-bottom:8px}
+  #mpChatPanel header{display:flex!important;min-height:25px}
   .mp-chat-panel header button{padding:4px 9px;min-width:28px}.mp-chat-messages{height:170px;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:7px;background:#081012;border-radius:8px;color:#d9e5df;font-size:12px}
   .mp-chat-line{overflow-wrap:anywhere}.mp-chat-line.system{color:#c9ef9f;font-style:italic}.mp-chat-line b{color:#a8dff2}#mpChatForm{display:flex;gap:6px;margin-top:8px}#mpChatInput{flex:1;min-width:0;background:#18282d;border:1px solid #48626a;border-radius:7px;padding:9px;color:#eef6f0;font:inherit}#mpChatForm button{padding:8px 12px}.mp-chat-panel small{display:block;color:#789096;font-size:9px;margin-top:6px}
   .story-panel{max-width:520px;text-align:left;background:linear-gradient(145deg,#192b2b,#10191e);border-color:#a5c4a166}.story-panel h2{color:#e7f1d5}.story-panel p{font-size:15px;line-height:1.75;color:#cfddd5}
   @media(max-width:700px){.mp-chat{right:8px;bottom:8px;width:min(300px,calc(100vw - 16px))}.mp-chat-messages{height:130px}}
+
+
+  /* Release presentation: the title/menu stays framed; active play uses the full PC viewport. */
+  body.game-active{display:block;width:100%;height:100%;min-height:100vh;padding:0;overflow:hidden;}
+  body.game-active .shell{width:100vw;max-width:none;height:100vh;display:flex;flex-direction:column;}
+  body.game-active> .shell>header,
+  body.game-active .footnote{display:none!important;}
+  body.game-active .below{display:flex!important;position:fixed;left:12px;right:auto;bottom:12px;z-index:40;margin:0;padding:0;align-items:center;pointer-events:none;background:transparent;}
+  body.game-active .below .controls-text{display:none!important;}
+  body.game-active .below .right-tools{display:flex;flex-wrap:wrap;gap:7px;pointer-events:auto;}
+  body.game-active .below .small-btn{padding:9px 12px;background:#102126eF;border-color:#779c8c88;box-shadow:0 4px 18px #0007;}
+  body.game-active main{display:flex;flex:1;min-height:0;height:100%;}
+  body.game-active .stage{width:100%;height:100%;min-height:0;border:0;border-radius:0;box-shadow:none;}
+  body.game-active canvas{width:100%;height:100%;aspect-ratio:auto;}
+  html:fullscreen,html:fullscreen body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;}
+  html:fullscreen body{display:block;}
+  html:fullscreen .shell{width:100vw;max-width:none;height:100vh;display:flex;flex-direction:column;}
+  html:fullscreen .shell>header,html:fullscreen .footnote{display:none!important;}
+  html:fullscreen .below{display:flex!important;position:fixed;left:12px;right:auto;bottom:12px;z-index:40;margin:0;padding:0;align-items:center;pointer-events:none;background:transparent;}
+  html:fullscreen .below .controls-text{display:none!important;}
+  html:fullscreen .below .right-tools{display:flex;flex-wrap:wrap;gap:7px;pointer-events:auto;}
+  html:fullscreen .below .small-btn{padding:9px 12px;background:#102126eF;border-color:#779c8c88;box-shadow:0 4px 18px #0007;}
+  html:fullscreen main{display:flex;flex:1;min-height:0;height:100%;}
+  html:fullscreen .stage{width:100%;height:100%;min-height:0;border:0;border-radius:0;box-shadow:none;}
+  html:fullscreen canvas{width:100%;height:100%;aspect-ratio:auto;}
+  @media(min-width:1100px){body:not(.game-active):not(:fullscreen) .shell{width:min(100%,1120px);}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important;}}
 
 </style>
 </head>
@@ -262,7 +290,7 @@
     <div class="stage">
       <canvas id="game" width="960" height="640" aria-label="Flipping Is Hard 2D platform game"></canvas>
       <div class="narrator-caption" id="narratorCaption" aria-live="polite"><strong>THE NARRATOR</strong><span id="narratorCaptionText"></span></div>
-      <div class="mp-chat" id="mpChat" hidden><button class="mp-chat-toggle" id="mpChatToggle" type="button">CHAT · ENTER</button><section class="mp-chat-panel" id="mpChatPanel" hidden aria-label="Multiplayer chat"><header><strong>ROOM CHAT</strong><button type="button" id="mpChatClose" class="secondary">×</button></header><div class="mp-chat-messages" id="mpChatMessages" aria-live="polite"></div><form id="mpChatForm"><input id="mpChatInput" maxlength="140" autocomplete="off" placeholder="Message your team…"><button class="primary" type="submit">Send</button></form><small>Enter opens chat · 140 characters · Be nice to your fellow Flippys.</small></section></div>
+      <div class="mp-chat" id="mpChat" hidden><button class="mp-chat-toggle" id="mpChatToggle" type="button" aria-expanded="false" title="Open room chat">CHAT · OPEN (ENTER / Y)</button><section class="mp-chat-panel" id="mpChatPanel" hidden aria-label="Multiplayer chat"><header><strong>ROOM CHAT</strong><button type="button" id="mpChatClose" class="secondary">×</button></header><div class="mp-chat-messages" id="mpChatMessages" aria-live="polite"></div><form id="mpChatForm"><input id="mpChatInput" maxlength="140" autocomplete="off" placeholder="Message your team…"><button class="primary" type="submit">Send</button></form><small>Enter opens · Y toggles · Escape closes · 140 characters.</small></section></div>
       <div class="overlay hidden" id="storyOverlay" aria-label="Story memory"><div class="panel story-panel"><div class="eyebrow">A MEMORY FROM BEFORE THE DRAIN</div><h2 id="storyTitle">A little memory</h2><p id="storyText"></p><div class="button-row"><button class="primary" id="storyContinueButton">Keep climbing</button></div><div class="tiny">OPTIONAL STORY · Press Enter to continue</div></div></div>
       <div class="overlay" id="startOverlay">
         <div class="title-screen">
@@ -323,7 +351,7 @@
               <div class="controls-grid">
                 <span><b>A / D</b><br>Rotate with momentum</span><span><b>Space</b><br>Vibration jump · buffered</span>
                 <span><b>E</b><br>Talk / accept mission</span><span><b>Clean landings</b><br>Land upright with low spin for scrap bonuses</span><span><b>Jump timing</b><br>Short grace window after leaving a ledge</span><span><b>Q</b><br>Piton tether</span>
-                <span><b>H</b><br>Help Beam</span><span><b>V</b><br>Request rescue</span><span><b>Enter</b><br>Multiplayer chat</span><span><b>Esc / P</b><br>Pause menu</span>
+                <span><b>H</b><br>Help Beam</span><span><b>V</b><br>Request rescue</span><span><b>Enter / Y</b><br>Open / toggle chat · Esc closes</span><span><b>Esc / P</b><br>Pause menu</span>
                 <span><b>G</b><br>Checkpoint menu</span><span><b>R / T</b><br>Restart / recover</span>
                 <span><b>F</b><br>Fullscreen</span><span><b>J</b><br>Trophy collection</span>
               </div>
@@ -501,7 +529,7 @@
   let lastFrame = 0, cameraX = 0, cameraY = 0, shake = 0, particles = [];
   let jumpWasDown = false;
   const keys = Object.create(null);
-  const DEFAULT_BINDINGS={rotateLeft:'KeyA',rotateRight:'KeyD',jump:'Space',interact:'KeyE',tether:'KeyQ',helpBeam:'KeyH',requestRescue:'KeyV',pause:'Escape',checkpoints:'KeyG',trophies:'KeyJ',recover:'KeyT',restart:'KeyR',fullscreen:'KeyF'};
+  const DEFAULT_BINDINGS={rotateLeft:'KeyA',rotateRight:'KeyD',jump:'Space',interact:'KeyE',tether:'KeyQ',helpBeam:'KeyH',requestRescue:'KeyV',pause:'Escape',checkpoints:'KeyG',trophies:'KeyJ',recover:'KeyT',restart:'KeyR',fullscreen:'KeyF',chatToggle:'KeyY'};
   let keyBindings={...DEFAULT_BINDINGS}, rebindingAction='';
   let gameSettings={masterVolume:72,sfxVolume:82,musicVolume:64,musicEnabled:true,musicChangeMinutes:5,narratorMode:'balanced',muted:false,uiTheme:'trashlands',particles:true,cameraFollow:5.5,hud:{status:true,map:true,progress:true,prompts:true,toasts:true}};
   let audioContext=null;
@@ -660,7 +688,11 @@
       if(z>=9&&z<zoneInfo.length-1&&j===4){opts.checkpoint=true;opts.label=zoneInfo[z].name+' CHECKPOINT';}
       if((z+j)%4===1)opts.angle=((z+j)%2?-0.11:0.11);
       if(z===6&&j===3)opts.angle=-0.04;
-      const p=addPlatform(clamp(cx-widths[j]/2,20,WORLD_W-widths[j]-20),y,widths[j],kind,opts);
+      // Give Jeff's front door a generous, flat arrival shelf. The actual
+      // goal remains the same; the wider top simply makes the final landing fairer.
+      const platformWidth=(z===12&&j===7)?460:widths[j];
+      if(z===12&&j===7){opts.angle=0;opts.h=28;}
+      const p=addPlatform(clamp(cx-platformWidth/2,20,WORLD_W-platformWidth-20),y,platformWidth,kind,opts);
       routePlatforms[z].push(p);
     }
     // Left and right detours branch from the middle of each area and reconnect
@@ -1016,6 +1048,8 @@
     {id:'memory_arcade_tone',name:'The Old Ringtone',hint:'A familiar melody',platform:branchTargets[11].right[2]},
     {id:'memory_frontdoor_key',name:'The House Key',hint:'A tiny keyring from home',platform:routePlatforms[12][5]}
   ].map(v=>({...v,x:v.platform.x+v.platform.w/2,y:v.platform.y-52}));
+  const SAVE_MAP_VERSION=2;
+  let needsMapVersionWrite=false;
   const completedQuestIds=new Set();
   const unlockedCosmetics=new Set(['Default']);
   const collectedQuestItems=new Set();
@@ -1027,6 +1061,8 @@
   function loadProgress(){
     try{
       const saved=JSON.parse(localStorage.getItem('fih2d_progress_v4')||localStorage.getItem('fih2d_progress_v3')||'{}');
+      const storedMapVersion=Math.max(0,Number(saved.mapVersion||saved.run?.mapVersion)||0);
+      needsMapVersionWrite=storedMapVersion<SAVE_MAP_VERSION;
       if(Array.isArray(saved.completed))saved.completed.forEach(v=>{if(typeof v==='string')completedQuestIds.add(v);});
       if(Array.isArray(saved.cosmetics))saved.cosmetics.forEach(v=>{if(typeof v==='string'&&cosmeticPalette[v])unlockedCosmetics.add(v);});
       if(Array.isArray(saved.checkpoints))saved.checkpoints.forEach(v=>{if(checkpointById.has(v))unlockedCheckpointIds.add(v);});
@@ -1052,22 +1088,42 @@
       if(Number.isFinite(Number(saved.scrapChips)))scrapChips=Math.max(0,Math.floor(Number(saved.scrapChips)));
       if(saved.equipped==='Default'||cosmeticPalette[saved.equipped])equippedCosmetic=saved.equipped;
       if(!unlockedCosmetics.has(equippedCosmetic))equippedCosmetic='Default';
-      if(saved.run&&typeof saved.run==='object'&&Number.isFinite(Number(saved.run.x))&&Number.isFinite(Number(saved.run.y))){savedRun=saved.run;if(savedRun.y<11000){savedRun.y+=3090;if(Number.isFinite(savedRun.bestY))savedRun.bestY+=3090;}hasContinue=true;lastSavedMode=saved.run.mode||'chill';difficultyId=DIFFICULTIES[saved.run.difficulty]?saved.run.difficulty:'standard';}
+      if(saved.run&&typeof saved.run==='object'&&Number.isFinite(Number(saved.run.x))&&Number.isFinite(Number(saved.run.y))){
+        savedRun={...saved.run};
+        // The 13-region world added a 3,090-unit vertical section to older maps.
+        // Migrate only when the saved player is clearly closer to the expanded
+        // world after that offset, using the saved supporting platform as proof.
+        if(storedMapVersion<SAVE_MAP_VERSION){
+          const candidateIndices=[];
+          if(savedRun.grounded&&Number.isInteger(Number(savedRun.groundIndex))&&Number(savedRun.groundIndex)>=0)candidateIndices.push(Number(savedRun.groundIndex));
+          if(Number.isInteger(Number(savedRun.lastSafePlatform))&&Number(savedRun.lastSafePlatform)>=0)candidateIndices.push(Number(savedRun.lastSafePlatform));
+          const savedCheckpoint=checkpointById.get(String(savedRun.checkpoint||''));
+          if(savedCheckpoint&&Number.isInteger(savedCheckpoint.platform))candidateIndices.push(savedCheckpoint.platform);
+          let bestMigration=null;
+          for(const idx of candidateIndices){const platform=platforms[idx];if(!platform)continue;const currentGap=Math.abs(Number(savedRun.y)-platform.y);const shiftedGap=Math.abs(Number(savedRun.y)+3090-platform.y);if(!bestMigration||shiftedGap<bestMigration.shiftedGap)bestMigration={currentGap,shiftedGap};}
+          if(bestMigration&&bestMigration.shiftedGap<1900&&bestMigration.currentGap>2400&&bestMigration.shiftedGap+650<bestMigration.currentGap){
+            savedRun.y+=3090;if(Number.isFinite(savedRun.bestY))savedRun.bestY+=3090;
+          }
+        }
+        savedRun.mapVersion=SAVE_MAP_VERSION;
+        hasContinue=true;lastSavedMode=savedRun.mode||'chill';difficultyId=DIFFICULTIES[savedRun.difficulty]?savedRun.difficulty:'standard';
+      }
     }catch(_){/* private browsing or disabled storage: progress remains session-only */}
   }
   function saveProgress(){
-    try{localStorage.setItem('fih2d_progress_v4',JSON.stringify({completed:[...completedQuestIds],cosmetics:[...unlockedCosmetics],equipped:equippedCosmetic,checkpoints:[...unlockedCheckpointIds],foundTrophies:[...collectedFoundTrophies],scrapCollected:[...collectedScrapIds],questItems:[...collectedQuestItems],memories:[...collectedMemoryIds],endingUnlocked,memorySetRewarded,cleanLandingPlatforms:[...rewardedLandingPlatforms],cleanLandings,bestLandingStreak,activeQuest:activeQuestId,scrapChips,visitedZones:[...visitedZones],questlines:questlineProgress,activeQuestline:activeQuestlineId,questlineItems:[...collectedQuestlineItems],secretRelics:[...collectedSecretRelics],secretVisited:secretRooms.filter(r=>r.visited).map(r=>r.id),storyFragments:[...collectedStoryFragments],trialMedals,ownedGear:[...ownedGear],scrapEarned:totalScrapEarned,scrapSpent:totalScrapSpent,run:savedRun}));}catch(_){/* storage is optional */}
+    try{localStorage.setItem('fih2d_progress_v4',JSON.stringify({mapVersion:SAVE_MAP_VERSION,completed:[...completedQuestIds],cosmetics:[...unlockedCosmetics],equipped:equippedCosmetic,checkpoints:[...unlockedCheckpointIds],foundTrophies:[...collectedFoundTrophies],scrapCollected:[...collectedScrapIds],questItems:[...collectedQuestItems],memories:[...collectedMemoryIds],endingUnlocked,memorySetRewarded,cleanLandingPlatforms:[...rewardedLandingPlatforms],cleanLandings,bestLandingStreak,activeQuest:activeQuestId,scrapChips,visitedZones:[...visitedZones],questlines:questlineProgress,activeQuestline:activeQuestlineId,questlineItems:[...collectedQuestlineItems],secretRelics:[...collectedSecretRelics],secretVisited:secretRooms.filter(r=>r.visited).map(r=>r.id),storyFragments:[...collectedStoryFragments],trialMedals,ownedGear:[...ownedGear],scrapEarned:totalScrapEarned,scrapSpent:totalScrapSpent,run:savedRun}));}catch(_){/* storage is optional */}
     updateContinueButton();
   }
   function updateContinueButton(){const b=document.getElementById('continueButton');if(b)b.disabled=!hasContinue||!savedRun;}
   function saveRunSnapshot(){
     if(multiplayer||!['playing','paused'].includes(state))return;
-    savedRun={x:player.x,y:player.y,vx:player.vx,vy:player.vy,angle:player.angle,omega:player.omega,
+    savedRun={mapVersion:SAVE_MAP_VERSION,x:player.x,y:player.y,vx:player.vx,vy:player.vy,angle:player.angle,omega:player.omega,
       time,falls,jumps:jumpCount,bestY,mode,difficulty:difficultyId,climbStyle,checkpoint:checkpoint.id,lastSafePlatform:lastSafeSurface?platforms.indexOf(lastSafeSurface.platform):-1,lastSafeOffset:lastSafeSurface?.offsetX||0,
       grounded:!!player.supported,groundIndex:player.ground?platforms.indexOf(player.ground):-1,cleanLandings,bestLandingStreak};
     hasContinue=true;lastSavedMode=mode;lastAutoSave=time;saveProgress();
   }
   loadProgress();
+  if(needsMapVersionWrite)saveProgress();
   let toastText='',toastTime=0;
   function setToast(message,duration=2.8){toastText=String(message??'');toastTime=Math.max(.2,Number(duration)||2.8);}
   let lastNarratedZone=-1;
@@ -1279,7 +1335,7 @@
     setToast(`PHONE LOOK · ${equippedCosmetic.toUpperCase()}`);
   }
   let activePauseTab='overview';
-  const CONTROL_META={rotateLeft:'Rotate left',rotateRight:'Rotate right',jump:'Vibration jump',interact:'Talk / interact',tether:'Piton tether',helpBeam:'Help Beam',requestRescue:'Request rescue',pause:'Pause menu',checkpoints:'Checkpoint menu',trophies:'Trophy cabinet',recover:'Recover',restart:'Restart climb',fullscreen:'Fullscreen'};
+  const CONTROL_META={rotateLeft:'Rotate left',rotateRight:'Rotate right',jump:'Vibration jump',interact:'Talk / interact',tether:'Piton tether',helpBeam:'Help Beam',requestRescue:'Request rescue',pause:'Pause menu',checkpoints:'Checkpoint menu',trophies:'Trophy cabinet',recover:'Recover',restart:'Restart climb',fullscreen:'Fullscreen',chatToggle:'Toggle multiplayer chat'};
   function keyLabel(code){return ({Space:'SPACE',ArrowLeft:'←',ArrowRight:'→',ArrowUp:'↑',ArrowDown:'↓',Escape:'ESC',Enter:'ENTER',ShiftLeft:'LEFT SHIFT',ShiftRight:'RIGHT SHIFT',ControlLeft:'LEFT CTRL',AltLeft:'LEFT ALT'})[code]||String(code||'').replace(/^Key/,'').replace(/^Digit/,'');}
   function bindingDown(action){return !!keys[keyBindings[action]];}
   function isBoundEvent(action,e){return !!e&&e.code===keyBindings[action];}
@@ -1367,7 +1423,7 @@
   function pauseAction(action){
     if(action==='resume'){state='playing';pauseOverlay.classList.add('hidden');}
     else if(action==='restart')restart();
-    else if(action==='title'){if(multiplayer)leaveOnlineRoom(true);else{saveRunSnapshot();state='menu';pauseOverlay.classList.add('hidden');startOverlay.classList.remove('hidden');updateContinueButton();}}
+    else if(action==='title'){if(multiplayer)leaveOnlineRoom(true);else{saveRunSnapshot();state='menu';setGamePresentation(false);pauseOverlay.classList.add('hidden');startOverlay.classList.remove('hidden');updateContinueButton();}}
     else if(action==='fullscreen')toggleFullscreen();
     else if(action==='save'){saveRunSnapshot();document.getElementById('pauseSaveStatus').textContent='Saved just now';}
     else if(action==='resetBindings'){keyBindings={...DEFAULT_BINDINGS};rebindingAction='';saveUserSettings();renderPauseTab('controls');setToast('DEFAULT CONTROLS RESTORED');}
@@ -1398,11 +1454,20 @@
     const styleLabel=CLIMB_STYLES[document.getElementById('climbStyleSelect')?.value||climbStyle]?.name||'Classic Climb';
     summary.textContent=`SETUP · ${modeLabel.split(' · ')[0].toUpperCase()} · ${styleLabel.toUpperCase()} · ${diffLabel.toUpperCase()}${reducedScreenShake?' · REDUCED SHAKE':''}`;
   }
+  function setGamePresentation(active){
+    document.body.classList.toggle('game-active',!!active);
+    // Let layout settle before measuring the viewport-sized canvas.
+    requestAnimationFrame(()=>{try{resizeGameCanvas();}catch(_){}});
+  }
   function enterFullscreen(){
-    if(!document.fullscreenElement){const req=document.documentElement.requestFullscreen?.({navigationUI:'hide'});if(req&&req.catch)req.catch(()=>setToast('FULLSCREEN UNAVAILABLE · PRESS F11'));}
+    if(document.fullscreenElement)return;
+    try{
+      const req=document.documentElement.requestFullscreen?.({navigationUI:'hide'});
+      if(req&&typeof req.catch==='function')req.catch(()=>setToast('FULLSCREEN UNAVAILABLE · GAME WILL FILL THE WINDOW'));
+    }catch(_){setToast('FULLSCREEN UNAVAILABLE · GAME WILL FILL THE WINDOW');}
   }
   function toggleFullscreen(){
-    if(document.fullscreenElement){const req=document.exitFullscreen?.();if(req&&req.catch)req.catch(()=>{});}
+    if(document.fullscreenElement){try{const req=document.exitFullscreen?.();if(req&&req.catch)req.catch(()=>{});}catch(_){}}
     else enterFullscreen();
   }
   function updateTitleContinue(){const b=document.getElementById('continueButton');if(b)b.disabled=!(hasContinue&&savedRun);}
@@ -1505,12 +1570,13 @@
     rememberSafeSurface(player.ground);
   }
   function startGame(which,continueRun=false){
+    setGamePresentation(true);
     multiplayer=false;multiplayerMode='solo';remotePlayers.clear();raceWinner='';
     if(continueRun&&savedRun){mode=savedRun.mode==='hard'?'hard':'chill';difficultyId=DIFFICULTIES[savedRun.difficulty]?savedRun.difficulty:'standard';climbStyle=CLIMB_STYLES[savedRun.climbStyle]?savedRun.climbStyle:'classic';}
     else{mode=which==='hard'?'hard':'chill';difficultyId=document.getElementById('difficultySelect').value||'standard';climbStyle=CLIMB_STYLES[document.getElementById('climbStyleSelect')?.value]?document.getElementById('climbStyleSelect').value:'classic';}
     const styleSelect=document.getElementById('climbStyleSelect');if(styleSelect)styleSelect.value=climbStyle;
     applyDifficulty(difficultyId);
-    state='playing';startSoundtrack();time=continueRun&&savedRun?Math.max(0,Number(savedRun.time)||0):0;falls=continueRun&&savedRun?Math.max(0,Number(savedRun.falls)||0):0;jumpCount=continueRun&&savedRun?Math.max(0,Number(savedRun.jumps)||0):0;bestY=continueRun&&savedRun?(Number(savedRun.bestY)||START_PLAYER_Y):START_PLAYER_Y;lastNarratedZone=-1;narratorLastAt=-999;lastNearMissAt=-999;lastBounceCommentAt=-999;lastBumpCommentAt=-999;narratorMilestones.clear();narratorCaptionTimer=0;document.getElementById('narratorCaption')?.classList.remove('visible');battery=100;tether=null;if(!continueRun){activeQuestId='';collectedQuestItems.clear();cleanLandings=0;landingStreak=0;bestLandingStreak=0;rewardedLandingPlatforms.clear();}collectedPickups.clear();
+    state='playing';startSoundtrack();time=continueRun&&savedRun?Math.max(0,Number(savedRun.time)||0):0;falls=continueRun&&savedRun?Math.max(0,Number(savedRun.falls)||0):0;jumpCount=continueRun&&savedRun?Math.max(0,Number(savedRun.jumps)||0):0;bestY=continueRun&&savedRun?(Number(savedRun.bestY)||START_PLAYER_Y):START_PLAYER_Y;lastNarratedZone=-1;narratorLastAt=-999;lastNearMissAt=-999;lastBounceCommentAt=-999;lastBumpCommentAt=-999;narratorMilestones.clear();narratorCaptionTimer=0;document.getElementById('narratorCaption')?.classList.remove('visible');battery=100;tether=null;if(!continueRun){activeQuestId='';collectedQuestItems.clear();cleanLandings=0;landingStreak=0;bestLandingStreak=0;rewardedLandingPlatforms.clear();lastSafeSurface={platform:startPlatform,offsetX:START_X-startPlatform.x};}collectedPickups.clear();
     if(checkpointOverlay)checkpointOverlay.classList.add('hidden');
     checkpoint={id:'storm-drain',x:START_X,y:START_PLATFORM_Y,angle:0,platform:platforms.indexOf(startPlatform)};
     if(continueRun&&savedRun){
@@ -1520,9 +1586,14 @@
     if(continueRun&&savedRun){
       player.x=clamp(Number(savedRun.x)||START_X,40,WORLD_W-40);player.y=clamp(Number(savedRun.y)||START_PLAYER_Y,60,worldHeight-40);
       player.vx=clamp(Number(savedRun.vx)||0,-3500,3500);player.vy=clamp(Number(savedRun.vy)||0,-3500,3500);player.angle=Number(savedRun.angle)||0;player.omega=Number(savedRun.omega)||0;
-      player.ground=Number.isInteger(savedRun.groundIndex)?platforms[savedRun.groundIndex]||null:null;player.supported=!!savedRun.grounded&&!!player.ground;player.grounded=player.supported;player.canJump=player.supported;player.coyoteTime=0;player.contactNormal={x:0,y:-1};
+      let restoredGround=Number.isInteger(savedRun.groundIndex)?platforms[savedRun.groundIndex]||null:null;
+      const groundMatches=restoredGround&&Math.abs((restoredGround.y-extentY(player.angle))-player.y)<115&&player.x>=restoredGround.x-90&&player.x<=restoredGround.x+restoredGround.w+90&&!restoredGround.hazard&&!restoredGround.difficultyDisabled;
+      if(!groundMatches)restoredGround=null;
+      player.ground=restoredGround;player.supported=!!savedRun.grounded&&!!restoredGround;player.grounded=player.supported;player.canJump=player.supported;player.coyoteTime=0;player.contactNormal={x:0,y:-1};
       cameraY=clamp(player.y-H*.60,0,worldHeight-H);cameraX=clamp(player.x-W*.5,0,WORLD_W-W);
-      const safeIndex=Number(savedRun.lastSafePlatform);if(Number.isInteger(safeIndex)&&platforms[safeIndex])lastSafeSurface={platform:platforms[safeIndex],offsetX:Number(savedRun.lastSafeOffset)||platforms[safeIndex].w/2};else rememberSafeSurface(player.ground||startPlatform);
+      const safeIndex=Number(savedRun.lastSafePlatform),safePlatform=Number.isInteger(safeIndex)?platforms[safeIndex]:null;
+      if(safePlatform&&!safePlatform.hazard&&!safePlatform.difficultyDisabled&&Math.abs(safePlatform.y-player.y)<1600)lastSafeSurface={platform:safePlatform,offsetX:clamp(Number(savedRun.lastSafeOffset)||safePlatform.w/2,0,safePlatform.w)};
+      else rememberSafeSurface(player.ground||startPlatform);
     }
     startOverlay.classList.add('hidden');pauseOverlay.classList.add('hidden');winOverlay.classList.add('hidden');
     document.getElementById('teleportSmall').style.display=(mode==='chill'&&climbStyle!=='iron')?'':'none';document.getElementById('leaveRoomSmall').style.display='none';
@@ -1530,7 +1601,7 @@
   }
   function restart(){
     if(state==='menu') return;
-    if(multiplayer){ resetPlayer(true); time=0; falls=0; jumpCount=0; bestY=player.y; raceWinner=''; state='playing'; pauseOverlay.classList.add('hidden'); winOverlay.classList.add('hidden'); roomOverlay.classList.add('hidden'); startOverlay.classList.add('hidden'); return; }
+    if(multiplayer){ if(climbStyle==='safety')restoreLastSafeSurface();else resetPlayer(climbStyle!=='iron'); time=0; falls=0; jumpCount=0; bestY=player.y; raceWinner=''; raceFinishSubmitted=false;raceFinishSubmittedAt=0;state='playing'; pauseOverlay.classList.add('hidden'); winOverlay.classList.add('hidden'); roomOverlay.classList.add('hidden'); startOverlay.classList.add('hidden'); return; }
     time=0; falls=0; jumpCount=0; bestY=START_PLAYER_Y; lastNarratedZone=-1; checkpoint={id:'storm-drain',x:START_X,y:START_PLATFORM_Y,angle:0,platform:platforms.indexOf(startPlatform)};activeQuestId='';collectedQuestItems.clear();collectedPickups.clear();
     resetPlayer(false); state='playing'; pauseOverlay.classList.add('hidden'); winOverlay.classList.add('hidden');
   }
@@ -1744,6 +1815,7 @@
     if(state==='ending'){updateEnding(dt);updateRemoteSmoothing(dt);updateNetwork(dt);return;}
     if(state!=='playing') { updateRemoteSmoothing(dt); updateNetwork(dt); return; }
     time+=dt;
+    if(multiplayer&&multiplayerMode!=='coop'&&!network.isHost&&raceFinishSubmitted&&Date.now()-raceFinishSubmittedAt>3500){raceFinishSubmitted=false;raceFinishSubmittedAt=0;setToast('ROOM RESULT DELAYED · RETRYING FINISH');tryGoalArrival();}
     updateDynamicPlatforms(dt);
     updateLivingNPCs(dt);
     helpCooldown=Math.max(0,helpCooldown-dt);
@@ -1849,6 +1921,10 @@
       collectQuestlineItems();
       collectWorldPickups();
       collectSecretAndStory();
+      // Forgiving summit arrival: the goal shelf is wider, and supported landings
+      // close to the front door also count. This avoids pixel-perfect positioning
+      // while still requiring Flippy to reach the final ledge.
+      tryGoalArrival();
       if(state!=='playing')break;
     }
 
@@ -1874,6 +1950,16 @@
     }
     updateRemoteSmoothing(dt);
     updateNetwork(dt);
+  }
+
+  function tryGoalArrival(){
+    if(state!=='playing'||!player.supported)return false;
+    const goal=platforms.find(v=>v.goal);if(!goal)return false;
+    const foot=player.y+extentY(player.angle);
+    const nearDoor=player.x>=goal.x-36&&player.x<=goal.x+goal.w+36;
+    const onArrivalLevel=foot>=goal.y-82&&foot<=goal.y+36;
+    if(nearDoor&&onArrivalLevel){win();return true;}
+    return false;
   }
   function horizontalOverlap(p){ return player.x+extentX(player.angle)>p.x+3 && player.x-extentX(player.angle)<p.x+p.w-3; }
   function extentX(a){return Math.abs(Math.cos(a))*player.w/2+Math.abs(Math.sin(a))*player.h/2;}
@@ -1954,11 +2040,35 @@
       }
     }
   }
-  let localRescueUntil=0,lastRescueRequestAt=0,lastLocalChatAt=0;
+  let localRescueUntil=0,lastRescueRequestAt=0,lastLocalChatAt=0,unreadChatCount=0,raceFinishSubmitted=false,raceFinishSubmittedAt=0;
   const seenChatIds=new Set();
-  function setChatOpen(open){const panel=document.getElementById('mpChatPanel');if(!panel)return;panel.hidden=!open;if(open)document.getElementById('mpChatInput').focus();else document.getElementById('mpChatInput').blur();}
-  function addChatMessage(msg){if(!msg)return;const id=String(msg.id||'').slice(0,60);if(id&&seenChatIds.has(id))return;if(id){seenChatIds.add(id);if(seenChatIds.size>180)seenChatIds.delete(seenChatIds.values().next().value);}const box=document.getElementById('mpChatMessages');const row=document.createElement('div');row.className='mp-chat-line'+(msg.system?' system':'');if(msg.system){row.textContent=String(msg.text||'').slice(0,180);}else{const name=document.createElement('b');name.textContent=String(msg.name||'Flippy').slice(0,16)+': ';row.appendChild(name);row.appendChild(document.createTextNode(String(msg.text||'').slice(0,140)));}box.appendChild(row);while(box.children.length>45)box.removeChild(box.firstChild);box.scrollTop=box.scrollHeight;}
-  function sendRoomChat(raw){if(!multiplayer){setToast('ROOM CHAT IS AVAILABLE WHILE ONLINE');return;}const text=String(raw||'').replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,140);if(!text)return;if(Date.now()-lastLocalChatAt<850){setToast('CHAT RATE LIMIT · TAKE A MOMENT');return;}lastLocalChatAt=Date.now();const packet={type:'chat',id:localId+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),name:localName,text};addChatMessage(packet);if(network.isHost)broadcastRoom(packet);else if(network.hostConn&&network.hostConn.open)try{network.hostConn.send(packet);}catch(_){setToast('CHAT MESSAGE COULD NOT SEND');}}
+  function refreshChatToggle(){
+    const panel=document.getElementById('mpChatPanel'),toggle=document.getElementById('mpChatToggle');
+    if(!panel||!toggle)return;
+    const open=!panel.hidden;
+    toggle.textContent=open?'CHAT · CLOSE (ESC / BUTTON)':(unreadChatCount?`CHAT · ${unreadChatCount} NEW (ENTER / Y)`:'CHAT · OPEN (ENTER / Y)');
+    toggle.setAttribute('aria-expanded',String(open));
+    toggle.title=open?'Close room chat':'Open room chat';
+  }
+  function setChatOpen(open,focus=true){
+    const panel=document.getElementById('mpChatPanel'),input=document.getElementById('mpChatInput');
+    if(!panel)return;
+    panel.hidden=!open;
+    if(open){unreadChatCount=0;refreshChatToggle();if(focus&&input)input.focus();}
+    else{if(input)input.blur();refreshChatToggle();const root=document.getElementById('mpChat');if(focus&&root&&!root.hidden)document.getElementById('mpChatToggle')?.focus();}
+  }
+  function toggleChat(){const panel=document.getElementById('mpChatPanel');if(panel)setChatOpen(panel.hidden);}
+  function addChatMessage(msg){if(!msg)return;const id=String(msg.id||'').slice(0,60);if(id&&seenChatIds.has(id))return;if(id){seenChatIds.add(id);if(seenChatIds.size>180)seenChatIds.delete(seenChatIds.values().next().value);}const box=document.getElementById('mpChatMessages');const row=document.createElement('div');row.className='mp-chat-line'+(msg.system?' system':'');if(msg.system){row.textContent=String(msg.text||'').slice(0,180);}else{const name=document.createElement('b');name.textContent=String(msg.name||'Flippy').slice(0,16)+': ';row.appendChild(name);row.appendChild(document.createTextNode(String(msg.text||'').slice(0,140)));}box.appendChild(row);while(box.children.length>45)box.removeChild(box.firstChild);box.scrollTop=box.scrollHeight;const panel=document.getElementById('mpChatPanel');const mine=id.startsWith(localId+'-');if(panel?.hidden&&!mine&&!msg.system){unreadChatCount=Math.min(99,unreadChatCount+1);refreshChatToggle();}}
+  function sendRoomChat(raw){
+    if(!multiplayer){setToast('ROOM CHAT IS AVAILABLE WHILE ONLINE');return;}
+    const text=String(raw||'').replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,140);if(!text)return;
+    if(Date.now()-lastLocalChatAt<850){setToast('CHAT RATE LIMIT · TAKE A MOMENT');return;}
+    if(!network.isHost&&(!network.hostConn||!network.hostConn.open)){setToast('CHAT OFFLINE · MESSAGE NOT SENT');addChatMessage({id:'chat-offline-'+Date.now(),system:true,text:'Message not sent because the room connection is unavailable.'});return;}
+    lastLocalChatAt=Date.now();const packet={type:'chat',id:localId+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),name:localName,text};
+    addChatMessage(packet);
+    if(network.isHost)broadcastRoom(packet);
+    else try{network.hostConn.send(packet);}catch(_){setToast('CHAT MESSAGE COULD NOT SEND');addChatMessage({id:'chat-failed-'+Date.now(),system:true,text:'Message could not be sent.'});}
+  }
   function requestRescue(){if(state!=='playing'||!multiplayer||multiplayerMode!=='coop'){setToast('RESCUE REQUESTS ARE AVAILABLE IN CO-OP CLIMB');return;}if(Date.now()-lastRescueRequestAt<9000){setToast('RESCUE SIGNAL RECHARGING');return;}lastRescueRequestAt=Date.now();localRescueUntil=Date.now()+18000;const packet={type:'rescueRequest',id:localId,x:Math.round(player.x),y:Math.round(player.y)};addChatMessage({id:'local-rescue-'+Date.now(),system:true,text:'You sent a rescue signal to the team.'});if(network.isHost)broadcastRoom({type:'rescuePing',id:localId,name:localName});else if(network.hostConn&&network.hostConn.open){try{network.hostConn.send(packet);}catch(_){localRescueUntil=0;setToast('RESCUE SIGNAL COULD NOT SEND');return;}}else{localRescueUntil=0;setToast('ROOM CONNECTION UNAVAILABLE');return;}setToast('RESCUE SIGNAL SENT · LOOK FOR A HELP BEAM');narrate('A rescue signal. The narrator hopes somebody brought a rope.',true);}
   function doHelpBeam(){
     if(state!=='playing')return;
@@ -1986,9 +2096,13 @@
     spawnBurst(player.x,player.y,18,'#e2aaff');if(rescue){awardScrap(10);setToast(`RESCUED BY ${String(fromName||'A FRIEND').toUpperCase()} · +10 TEAM SCRAP`);addChatMessage({id:'rescue-'+Date.now(),system:true,text:`${fromName||'A teammate'} pulled you back into the climb!`});}else setToast(`HELPED BY ${String(fromName||'A FRIEND').toUpperCase()}`);narrate(`A lift from ${fromName||'a friend'}. Do try to land somewhere useful.`,true);saveProgress();
   }
   function recover(){
-    if(state==='menu') return;
-    resetPlayer(true); state='playing';
-    pauseOverlay.classList.add('hidden'); winOverlay.classList.add('hidden');
+    if(state==='menu'||state==='won'||state==='ending')return;
+    // Recovery is a convenience, not a way around the selected ruleset.
+    if(climbStyle==='safety'&&lastSafeSurface?.platform)restoreLastSafeSurface();
+    else resetPlayer(climbStyle!=='iron');
+    state='playing';
+    pauseOverlay.classList.add('hidden');winOverlay.classList.add('hidden');
+    saveRunSnapshot();
   }
   const endingBeats=[
     {at:0,chapter:'THE WAY HOME',title:'A familiar street...',line:'After everything, the street is finally quiet.',caption:'THE TOP OF THE TRASHLANDS'},
@@ -2034,11 +2148,24 @@
     document.getElementById('endingStatsFinal').textContent=`${formatTime(time)} · ${falls} falls · ${jumpCount} jumps`;
   }
   function win(){
-    if(state==='won')return;
+    if(state==='won'||state==='ending')return;
     if(multiplayer){
-      const msg={type:'finish',winner:localName,winnerId:localId};
-      if(network.isHost){if(!raceWinner)raceWinner=localName;msg.winner=raceWinner;broadcastRoom(msg);}
-      else if(network.hostConn&&network.hostConn.open)network.hostConn.send(msg);
+      if(multiplayerMode==='coop'){
+        const msg={type:'finish',winner:localName,winnerId:localId};
+        if(network.isHost)broadcastRoom(msg);
+        else if(network.hostConn&&network.hostConn.open){try{network.hostConn.send(msg);}catch(_){setToast('FINISH COULD NOT REACH THE HOST');}}
+        completeWin();return;
+      }
+      if(network.isHost){
+        if(!raceWinner){raceWinner=localName;broadcastRoom({type:'finish',winner:raceWinner,winnerId:localId});}
+        showCompetitiveFinish(raceWinner);return;
+      }
+      if(!raceFinishSubmitted&&network.hostConn&&network.hostConn.open){
+        raceFinishSubmitted=true;raceFinishSubmittedAt=Date.now();
+        try{network.hostConn.send({type:'finish',winner:localName,winnerId:localId});setToast('FINISH SENT · WAITING FOR ROOM RESULT');}
+        catch(_){raceFinishSubmitted=false;raceFinishSubmittedAt=0;setToast('FINISH COULD NOT REACH THE HOST');}
+      }
+      return;
     }
     completeWin();
   }
@@ -2566,12 +2693,12 @@
     else if(network.hostConn&&network.hostConn.open){try{network.hostConn.send({type:'leave',id:localId});}catch(_){}}
     roomConnectionsClose();
     network.isHost=false;network.roomCode='';network.phase='lobby';network.started=false;network.slot=0;network.status='offline';
-    multiplayer=false;multiplayerMode='solo';remotePlayers.clear();roomMembers.clear();tether=null;raceWinner='';
+    multiplayer=false;multiplayerMode='solo';remotePlayers.clear();roomMembers.clear();tether=null;raceWinner='';raceFinishSubmitted=false;raceFinishSubmittedAt=0;
     if(checkpointOverlay)checkpointOverlay.classList.add('hidden');
-    document.getElementById('leaveRoomSmall').style.display='none';document.getElementById('mpChat').hidden=true;setChatOpen(false);
+    document.getElementById('leaveRoomSmall').style.display='none';document.getElementById('mpChat').hidden=true;unreadChatCount=0;setChatOpen(false,false);
     roomOverlay.classList.add('hidden');
     document.getElementById('teleportSmall').style.display='none';
-    if(returnToMenu){state='menu';startOverlay.classList.remove('hidden');pauseOverlay.classList.add('hidden');winOverlay.classList.add('hidden');}
+    if(returnToMenu){state='menu';setGamePresentation(false);startOverlay.classList.remove('hidden');pauseOverlay.classList.add('hidden');winOverlay.classList.add('hidden');}
   }
   function broadcastRoom(data){
     for(const conn of network.connections.values()){
@@ -2592,14 +2719,14 @@
       targetX:clamp(x,-100,WORLD_W+100),targetY:clamp(y,-300,worldHeight+300),targetAngle:clamp(a,-1000,1000),
       vx:clamp(Number(raw.vx)||0,-3500,3500),vy:clamp(Number(raw.vy)||0,-3500,3500),
       battery:clamp(Number(raw.battery)||0,0,100),tether:raw.tether&&Number.isFinite(Number(raw.tether.x))&&Number.isFinite(Number(raw.tether.y))?{x:Number(raw.tether.x),y:Number(raw.tether.y)}:null,
-      color:raw.color||'#91a6b2',screen:raw.screen||'#b7e5c6',slot:Number(raw.slot)||0,needsRescue:!!raw.needsRescue,lastSeen:performance.now()
+      color:/^#[0-9a-f]{6}$/i.test(String(raw.color||''))?raw.color:'#91a6b2',screen:/^#[0-9a-f]{6}$/i.test(String(raw.screen||''))?raw.screen:'#b7e5c6',slot:Number(raw.slot)||0,needsRescue:!!raw.needsRescue,supported:!!raw.supported,groundIndex:Number.isInteger(Number(raw.groundIndex))?Number(raw.groundIndex):-1,lastSeen:performance.now()
     };
     if(current){Object.assign(current,next);}
     else{next.x=next.targetX;next.y=next.targetY;next.angle=next.targetAngle;remotePlayers.set(id,next);}
   }
   function localSnapshot(){
     const palette=playerPalette();
-    return {id:localId,name:localName,x:player.x,y:player.y,vx:player.vx,vy:player.vy,angle:player.angle,battery,tether:tether?{x:tether.x,y:tether.y}:null,slot:network.slot,color:palette.shell,screen:palette.screen,needsRescue:Date.now()<(localRescueUntil||0)};
+    return {id:localId,name:localName,x:player.x,y:player.y,vx:player.vx,vy:player.vy,angle:player.angle,battery,tether:tether?{x:tether.x,y:tether.y}:null,slot:network.slot,color:palette.shell,screen:palette.screen,supported:!!player.supported,groundIndex:player.ground?platforms.indexOf(player.ground):-1,needsRescue:Date.now()<(localRescueUntil||0)};
   }
   function updateRemoteSmoothing(dt){
     const now=performance.now();
@@ -2619,7 +2746,7 @@
     if(netSendTimer>=SNAPSHOT_INTERVAL){
       netSendTimer=0;
       if(network.isHost){
-        const players=[localSnapshot(),...Array.from(remotePlayers.values()).map(o=>({id:o.id,name:o.name,x:o.x,y:o.y,vx:o.vx,vy:o.vy,angle:o.angle,battery:o.battery,tether:o.tether,slot:o.slot,color:o.color,screen:o.screen,needsRescue:o.needsRescue}))];
+        const players=[localSnapshot(),...Array.from(remotePlayers.values()).map(o=>({id:o.id,name:o.name,x:o.x,y:o.y,vx:o.vx,vy:o.vy,angle:o.angle,battery:o.battery,tether:o.tether,slot:o.slot,color:o.color,screen:o.screen,supported:o.supported,groundIndex:o.groundIndex,needsRescue:o.needsRescue}))];
         network.snapshotSeq=(network.snapshotSeq+1)>>>0;
         broadcastRoom({type:'snapshot',seq:network.snapshotSeq,players,serverTime:Date.now()});
       }else if(network.hostConn&&network.hostConn.open){
@@ -2655,6 +2782,32 @@
       }
     }
   }
+  function remotePeerIsNearPlatform(peerId,platformIndex){
+    const remote=remotePlayers.get(peerId),p=platforms[platformIndex];
+    if(!remote||!p||p.hazard||p.difficultyDisabled)return false;
+    // Snapshot positions are interpolated on the host. A generous tolerance
+    // accounts for the 40 ms network cadence without accepting distant claims.
+    return remote.targetX>=p.x-110&&remote.targetX<=p.x+p.w+110&&
+      remote.targetY>=p.y-190&&remote.targetY<=p.y+110;
+  }
+  function remotePeerIsNearGoal(peerId){
+    const remote=remotePlayers.get(peerId),goal=platforms.find(p=>p.goal);
+    if(!remote||!goal)return false;
+    return remote.targetX>=goal.x-210&&remote.targetX<=goal.x+goal.w+210&&
+      remote.targetY>=goal.y-260&&remote.targetY<=goal.y+150;
+  }
+  function showCompetitiveFinish(winner){
+    raceWinner=cleanName(winner||'A teammate');
+    state='won';pauseOverlay.classList.add('hidden');
+    document.getElementById('endingOverlay').classList.add('hidden');
+    const overlay=document.getElementById('winOverlay');
+    overlay.classList.remove('hidden');
+    overlay.querySelector('.eyebrow').textContent='SCRAP RACE · FINISH';
+    overlay.querySelector('h2').textContent=raceWinner===localName?'You reached Jeff first!':`${raceWinner} reached Jeff first!`;
+    overlay.querySelector('p').textContent=raceWinner===localName?'A clean finish! The rest of the room is still making its way up.':'The climb is over for this round. Cheer your friend on, then start another race.';
+    document.getElementById('finishStats').textContent=`Winner: ${raceWinner} · ${formatTime(time)} · ${falls} falls`;
+    playSfx('win');
+  }
   function handleHostMessage(message,conn){
     if(!message||typeof message!=='object')return;
     if(message.type==='heartbeat'){
@@ -2674,7 +2827,7 @@
       }
       return;
     }
-    if(message.type==='state'&&conn._playerId){
+    if(message.type==='state'&&conn._playerId&&roomMembers.has(conn._playerId)){
       conn.lastHeard=Date.now();
       const member=roomMembers.get(conn._playerId);
       safeRemoteState(conn._playerId,message.player,member&&member.name);
@@ -2690,21 +2843,27 @@
       if(targetId===localId)applyHelpImpulse(packet.fromName,packet.rescue);
       broadcastRoom(packet);return;
     }
-    if(message.type==='chat'&&conn._playerId){const member=roomMembers.get(conn._playerId);const text=String(message.text||'').replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,140);if(!text||Date.now()-(conn._lastChatAt||0)<850)return;conn._lastChatAt=Date.now();const packet={type:'chat',id:String(message.id||makeId()).slice(0,60),name:cleanName(member?.name||'Flippy'),text};addChatMessage(packet);broadcastRoom(packet);return;}
+    if(message.type==='chat'&&conn._playerId&&roomMembers.has(conn._playerId)){const member=roomMembers.get(conn._playerId);const text=String(message.text||'').replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,140);if(!text||Date.now()-(conn._lastChatAt||0)<850)return;conn._lastChatAt=Date.now();const packet={type:'chat',id:String(message.id||makeId()).slice(0,60),name:cleanName(member?.name||'Flippy'),text};addChatMessage(packet);broadcastRoom(packet);return;}
     if(message.type==='rescueRequest'&&conn._playerId&&roomMembers.has(conn._playerId)&&network.mode==='coop'){if(Date.now()-(conn._lastRescueAt||0)<5000)return;conn._lastRescueAt=Date.now();const member=roomMembers.get(conn._playerId);const packet={type:'rescuePing',id:conn._playerId,name:cleanName(member?.name||'Flippy')};broadcastRoom(packet);addChatMessage({id:'host-'+packet.id+'-'+Date.now(),system:true,text:`${packet.name} needs a rescue! Use H / Help Beam to send a lift.`});return;}
-    if(message.type==='checkpoint'&&network.mode==='coop'&&message.checkpoint){
+    if(message.type==='checkpoint'&&conn._playerId&&roomMembers.has(conn._playerId)&&network.mode==='coop'&&message.checkpoint){
       const cp=message.checkpoint,record=checkpointRecords.find(c=>c.platform===Number(cp.platform));
-      if(record){
-        checkpoint={id:record.id,x:record.x,y:record.y,angle:0,platform:record.platform};
-        unlockedCheckpointIds.add(record.id);saveProgress();
-        broadcastRoom({type:'checkpoint',checkpoint:{id:record.id,x:record.x,y:record.y,angle:0,platform:record.platform}});
-      }
+      if(!record||Date.now()-(conn._lastCheckpointAt||0)<900||!remotePeerIsNearPlatform(conn._playerId,record.platform))return;
+      conn._lastCheckpointAt=Date.now();
+      checkpoint={id:record.id,x:record.x,y:record.y,angle:0,platform:record.platform};
+      unlockedCheckpointIds.add(record.id);saveProgress();
+      broadcastRoom({type:'checkpoint',checkpoint:{id:record.id,x:record.x,y:record.y,angle:0,platform:record.platform}});
       return;
     }
-    if(message.type==='finish'){
-      const winner=cleanName(message.winner);
-      if(network.mode==='coop')completeWin();else if(!raceWinner)raceWinner=winner;
-      broadcastRoom({type:'finish',winner:raceWinner||winner});return;
+    if(message.type==='finish'&&conn._playerId&&roomMembers.has(conn._playerId)){
+      if(!remotePeerIsNearGoal(conn._playerId))return;
+      const member=roomMembers.get(conn._playerId),winner=cleanName(member?.name||'A teammate');
+      if(network.mode==='coop'){
+        if(state!=='ending'&&state!=='won')completeWin();
+        broadcastRoom({type:'finish',winner,winnerId:conn._playerId});
+      }else if(!raceWinner){
+        raceWinner=winner;broadcastRoom({type:'finish',winner,winnerId:conn._playerId});showCompetitiveFinish(winner);
+      }
+      return;
     }
     if(message.type==='leave'&&conn._playerId){
       remotePlayers.delete(conn._playerId);roomMembers.delete(conn._playerId);refreshHostRoster();return;
@@ -2749,8 +2908,9 @@
       if(record){checkpoint={id:record.id,x:record.x,y:record.y,angle:0,platform:record.platform};unlockedCheckpointIds.add(record.id);saveProgress();setToast('TEAM CHECKPOINT REACHED');}return;
     }
     if(message.type==='finish'){
+      raceFinishSubmitted=false;raceFinishSubmittedAt=0;
       const winner=cleanName(message.winner);
-      if(network.mode==='coop')completeWin();else if(!raceWinner)raceWinner=winner;
+      if(network.mode==='coop')completeWin();else if(!raceWinner)showCompetitiveFinish(winner);
       return;
     }
     if(message.type==='roomClosed'){setLobbyStatus('The host closed this room.');leaveOnlineRoom(true);return;}
@@ -2815,15 +2975,16 @@
     peer.on('disconnected',()=>{if(network.peer===peer){network.status='unstable';setRoomStatus('Signalling disconnected. Reconnecting…');try{peer.reconnect();}catch(_){}}});
   }
   function startNetworkGame(which,slot=0,difficulty=network.difficulty||'standard',style=network.climbStyle||'classic'){
+    setGamePresentation(true);
     climbStyle=CLIMB_STYLES[style]?style:'classic';network.climbStyle=climbStyle;
-    multiplayer=true;multiplayerMode=which||'coop';network.mode=multiplayerMode;network.slot=Number(slot)||0;network.difficulty=DIFFICULTIES[difficulty]?difficulty:'standard';applyDifficulty(network.difficulty);network.started=true;network.status='connected';lastNarratedZone=-1;
+    multiplayer=true;multiplayerMode=which||'coop';network.mode=multiplayerMode;network.slot=Number(slot)||0;network.difficulty=DIFFICULTIES[difficulty]?difficulty:'standard';applyDifficulty(network.difficulty);network.started=true;network.status='connected';raceFinishSubmitted=false;raceFinishSubmittedAt=0;lastNarratedZone=-1;
     if(checkpointOverlay)checkpointOverlay.classList.add('hidden');
     netSendTimer=0;heartbeatTimer=0;network.lastHostMessage=Date.now();network.snapshotSeq=0;network.lastSnapshotSeq=-1;network.stallNoticeAt=0;
     mode=multiplayerMode==='coop'?'chill':'hard';state='playing';startSoundtrack();time=0;falls=0;jumpCount=0;bestY=START_PLAYER_Y;
     checkpoint={id:'storm-drain',x:START_X,y:START_PLATFORM_Y,angle:0,platform:platforms.indexOf(startPlatform)};battery=100;tether=null;helpCooldown=0;raceWinner='';activeQuestId='';collectedQuestItems.clear();collectedPickups.clear();landingStreak=0;
     resetPlayer(false);
     roomOverlay.classList.add('hidden');startOverlay.classList.add('hidden');pauseOverlay.classList.add('hidden');winOverlay.classList.add('hidden');
-    document.getElementById('leaveRoomSmall').style.display='inline-block';document.getElementById('mpChat').hidden=false;document.getElementById('mpChatPanel').hidden=true;document.getElementById('mpChatMessages').innerHTML='';addChatMessage({id:'room-start-'+Date.now(),system:true,text:`Connected to ${roomModeName(multiplayerMode)}. Be kind, climb together.`});
+    document.getElementById('leaveRoomSmall').style.display='inline-block';document.getElementById('mpChat').hidden=false;unreadChatCount=0;document.getElementById('mpChatPanel').hidden=true;refreshChatToggle();document.getElementById('mpChatMessages').innerHTML='';addChatMessage({id:'room-start-'+Date.now(),system:true,text:`Connected to ${roomModeName(multiplayerMode)}. Be kind, climb together.`});
     document.getElementById('teleportSmall').style.display=(multiplayerMode==='coop'&&climbStyle!=='iron')?'':'none';
     setToast(`${roomModeName(multiplayerMode).toUpperCase()} · GOOD LUCK`);
   }
@@ -2910,7 +3071,7 @@
   document.getElementById('gameModeSelect').addEventListener('change',updateTitleSettingsSummary);
   document.getElementById('climbStyleSelect').addEventListener('change',()=>{const v=document.getElementById('climbStyleSelect').value;document.getElementById('climbStyleDescription').textContent=CLIMB_STYLES[v]?.description||'';updateTitleSettingsSummary();});
   document.getElementById('storyContinueButton').addEventListener('click',closeStoryScene);
-  document.getElementById('mpChatToggle').addEventListener('click',()=>setChatOpen(true));
+  document.getElementById('mpChatToggle').addEventListener('click',toggleChat);
   document.getElementById('mpChatClose').addEventListener('click',()=>setChatOpen(false));
   document.getElementById('mpChatForm').addEventListener('submit',e=>{e.preventDefault();const input=document.getElementById('mpChatInput');sendRoomChat(input.value);input.value='';input.focus();});
   document.getElementById('titleFullscreenButton').addEventListener('click',toggleFullscreen);
@@ -2919,9 +3080,10 @@
   document.getElementById('continueButton').addEventListener('click',()=>{if(savedRun){ensureAudio();playSfx('start');startSoundtrack();enterFullscreen();startGame(savedRun.mode||lastSavedMode,true);}});
   document.getElementById('difficultySelect').addEventListener('change',e=>{const cfg=DIFFICULTIES[e.target.value]||DIFFICULTIES.standard;document.getElementById('difficultyDescription').textContent=cfg.description;updateTitleSettingsSummary();});
   document.getElementById('pauseTitleButton').addEventListener('click',()=>pauseAction('title'));
-  document.addEventListener('fullscreenchange',()=>{const on=!!document.fullscreenElement;document.getElementById('titleFullscreenButton').textContent=on?'⛶ Exit Fullscreen':'⛶ Fullscreen';document.getElementById('pauseFullscreenButton').textContent=on?'⛶ Exit Fullscreen':'⛶ Fullscreen';});
+  document.addEventListener('fullscreenchange',()=>{const on=!!document.fullscreenElement;document.getElementById('titleFullscreenButton').textContent=on?'⛶ Exit Fullscreen':'⛶ Fullscreen';document.getElementById('pauseFullscreenButton').textContent=on?'⛶ Exit Fullscreen':'⛶ Fullscreen';requestAnimationFrame(()=>{try{resizeGameCanvas();}catch(_){}});});
   window.addEventListener('resize',resizeGameCanvas);
   window.addEventListener('pagehide',()=>{if(!multiplayer)saveRunSnapshot();saveUserSettings();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(!multiplayer)saveRunSnapshot();saveUserSettings();}else if(state==='playing'&&musicAudio&&gameSettings.musicEnabled&&!gameSettings.muted)startSoundtrack();});
 
   // PC-only controls. Bindings are stored as KeyboardEvent.code values so
   // they remain stable across keyboard layouts.
@@ -2929,7 +3091,8 @@
     const k=e.key,code=e.code;
     if(e.target&&e.target.id==='mpChatInput'){if(code==='Escape'){setChatOpen(false);e.preventDefault();}return;}
     if(state==='story'&&(code==='Enter'||code==='Space'||code==='Escape')){e.preventDefault();closeStoryScene();return;}
-    if(state==='playing'&&multiplayer&&code==='Enter'){e.preventDefault();setChatOpen(true);return;}
+    if(state==='playing'&&multiplayer&&(code==='Enter'||code===keyBindings.chatToggle)){e.preventDefault();const panel=document.getElementById('mpChatPanel');if(panel?.hidden)setChatOpen(true);else if(code===keyBindings.chatToggle)setChatOpen(false);return;}
+    if(state==='playing'&&multiplayer&&code==='Escape'&&!document.getElementById('mpChatPanel')?.hidden){e.preventDefault();setChatOpen(false);return;}
     if(['Space','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(code))e.preventDefault();
     if(state==='ending'&&(code==='Enter'||code==='Space'||code==='Escape')){finishEndingSequence();return;}
     if(rebindingAction){
@@ -2958,10 +3121,10 @@
   window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
   document.getElementById('resumeButton').addEventListener('click',()=>pauseAction('resume'));
   document.getElementById('restartButton').addEventListener('click',()=>pauseAction('restart'));
-  document.getElementById('againButton').addEventListener('click',()=>{winOverlay.classList.add('hidden');startOverlay.classList.remove('hidden');state='menu';updateContinueButton();});
+  document.getElementById('againButton').addEventListener('click',()=>{if(multiplayer)leaveOnlineRoom(false);winOverlay.classList.add('hidden');setGamePresentation(false);startOverlay.classList.remove('hidden');state='menu';updateContinueButton();});
   document.getElementById('endingSkipButton').addEventListener('click',finishEndingSequence);
   document.getElementById('endingReplayButton').addEventListener('click',()=>{const replayMode=mode==='hard'?'hard':'chill',replayDifficulty=difficultyId,replayStyle=climbStyle;if(multiplayer||network.peer||network.hostConn||network.isHost)leaveOnlineRoom(false);document.getElementById('gameModeSelect').value=replayMode;document.getElementById('difficultySelect').value=replayDifficulty;document.getElementById('climbStyleSelect').value=replayStyle;document.getElementById('endingOverlay').classList.add('hidden');startGame(replayMode,false);enterFullscreen();});
-  document.getElementById('endingTitleButton').addEventListener('click',()=>{document.getElementById('endingOverlay').classList.add('hidden');state='menu';startOverlay.classList.remove('hidden');updateContinueButton();});
+  document.getElementById('endingTitleButton').addEventListener('click',()=>{document.getElementById('endingOverlay').classList.add('hidden');state='menu';setGamePresentation(false);startOverlay.classList.remove('hidden');updateContinueButton();});
   document.getElementById('restartSmall').addEventListener('click',restart);
   document.getElementById('recoverSmall').addEventListener('click',recover);
   document.getElementById('pauseSmall').addEventListener('click',()=>{if(state==='playing')openPauseMenu('overview');else if(state==='paused')pauseAction('resume');});
