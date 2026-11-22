@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjE1IiBmaWxsPSIjMTExODIwIi8+CjxyZWN0IHg9IjE2IiB5PSI1IiB3aWR0aD0iMzIiIGhlaWdodD0iNTQiIHJ4PSI4IiBmaWxsPSIjMjYzOTQzIiBzdHJva2U9IiNjNmYwNmMiIHN0cm9rZS13aWR0aD0iMyIvPgo8cmVjdCB4PSIyMSIgeT0iMTQiIHdpZHRoPSIyMiIgaGVpZ2h0PSIyOSIgcng9IjMiIGZpbGw9IiNhOGQ4YzIiLz4KPHBhdGggZD0iTTI1IDE5aDE0djE5SDI1eiIgZmlsbD0iIzI4NGI1MiIvPgo8cGF0aCBkPSJNMjggMjRoOE0yOCAyOWg4TTI4IDM0aDUiIHN0cm9rZT0iI2M2ZjA2YyIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPHJlY3QgeD0iMjYiIHk9IjkiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyLjUiIHJ4PSIxLjI1IiBmaWxsPSIjOTFhNmFjIi8+CjxjaXJjbGUgY3g9IjMyIiBjeT0iNTEiIHI9IjMiIGZpbGw9IiNmZmI0NWMiLz4KPHBhdGggZD0iTTQ5IDEybDIuMiA0LjQgNC44LjctMy41IDMuNC44IDQuOC00LjMtMi4zLTQuMyAyLjMuOC00LjgtMy41LTMuNCA0LjgtLjd6IiBmaWxsPSIjZmZiNDVjIi8+Cjwvc3ZnPg==">
 <meta name="theme-color" content="#111820">
 <title>Flipping Is Hard 2D</title>
 <style>
@@ -1570,6 +1571,82 @@
     particles=[]; shake=7;
     rememberSafeSurface(player.ground);
   }
+  // New Game is a genuinely fresh save. User preferences (controls, audio,
+  // interface theme and accessibility) live in a separate storage key and are
+  // deliberately preserved. All world, mission, trophy, currency and cosmetic
+  // progress belongs to the save and is reset together here.
+  function resetProgressForNewGame(){
+    const resetSet=set=>{if(set&&typeof set.clear==='function')set.clear();};
+    resetSet(completedQuestIds);
+    resetSet(unlockedCosmetics);unlockedCosmetics.add('Default');
+    resetSet(collectedQuestItems);
+    resetSet(unlockedCheckpointIds);unlockedCheckpointIds.add('storm-drain');
+    resetSet(collectedFoundTrophies);
+    resetSet(collectedScrapIds);
+    resetSet(visitedZones);
+    resetSet(collectedMemoryIds);
+    resetSet(rewardedLandingPlatforms);
+    resetSet(collectedSecretRelics);
+    resetSet(collectedStoryFragments);
+    resetSet(collectedQuestlineItems);
+    resetSet(collectedPickups);
+    resetSet(ownedGear);
+
+    for(const key of Object.keys(questlineProgress))delete questlineProgress[key];
+    for(const key of Object.keys(trialMedals))delete trialMedals[key];
+    for(const room of secretRooms)room.visited=false;
+
+    activeQuestId='';
+    activeQuestlineId='';
+    activeRegionalTrial=null;
+    equippedCosmetic='Default';
+    scrapChips=0;
+    totalScrapEarned=0;
+    totalScrapSpent=0;
+    endingUnlocked=false;
+    memorySetRewarded=false;
+    cleanLandings=0;
+    landingStreak=0;
+    bestLandingStreak=0;
+    scrapCombo=0;
+    scrapComboTimer=0;
+    insideSecretRoom='';
+    lastSafeSurface={platform:startPlatform,offsetX:START_X-startPlatform.x};
+    savedRun=null;
+    hasContinue=false;
+    lastSavedMode='chill';
+    lastAutoSave=0;
+    needsMapVersionWrite=false;
+    endingTimer=0;endingBeat=-1;endingFinalShown=false;
+    raceWinner='';raceFinishSubmitted=false;raceFinishSubmittedAt=0;
+    collectedPickups.clear();
+
+    // NPC routines are reset too, not just their quest flags. This returns
+    // every resident to their home and original idle routine for a new save.
+    for(let i=0;i<npcs.length;i++){
+      const n=npcs[i];
+      n.x=n.baseX;
+      n.y=n.homePlatform.y-34;
+      n.patrolPhase=i*.91;
+      n.activityIndex=i%4;
+      n.activityTimer=6+(i%6)*2;
+      n.activity='patrol';
+      n.socialTimer=11+(i%5)*3;
+      n.mood='idle';
+      n.bubble='';
+      n.bubbleTimer=0;
+      n.chatterTimer=8+(i%7)*2;
+    }
+
+    // Remove both the current and legacy progress records so a stale v3 save
+    // cannot be loaded again if the next save write is blocked by the browser.
+    try{
+      localStorage.removeItem('fih2d_progress_v4');
+      localStorage.removeItem('fih2d_progress_v3');
+    }catch(_){/* Private browsing may block storage; memory still resets. */}
+    updateContinueButton();
+  }
+
   function startGame(which,continueRun=false){
     setGamePresentation(true);
     multiplayer=false;multiplayerMode='solo';remotePlayers.clear();raceWinner='';
@@ -3077,7 +3154,7 @@
   document.getElementById('mpChatForm').addEventListener('submit',e=>{e.preventDefault();const input=document.getElementById('mpChatInput');sendRoomChat(input.value);input.value='';input.focus();});
   document.getElementById('titleFullscreenButton').addEventListener('click',toggleFullscreen);
   document.getElementById('pauseFullscreenButton').addEventListener('click',toggleFullscreen);
-  document.getElementById('newGameButton').addEventListener('click',()=>{ensureAudio();playSfx('start');startSoundtrack();enterFullscreen();startGame(document.getElementById('gameModeSelect').value,false);});
+  document.getElementById('newGameButton').addEventListener('click',()=>{if(!window.confirm('Start a brand-new save? This resets missions, NPC progress, trophies, scrap, purchased skins, gear and checkpoints. Your controls and settings will be kept.'))return;resetProgressForNewGame();ensureAudio();playSfx('start');startSoundtrack();enterFullscreen();startGame(document.getElementById('gameModeSelect').value,false);setToast('NEW SAVE · THE TRASHLANDS AWAIT');});
   document.getElementById('continueButton').addEventListener('click',()=>{if(savedRun){ensureAudio();playSfx('start');startSoundtrack();enterFullscreen();startGame(savedRun.mode||lastSavedMode,true);}});
   document.getElementById('difficultySelect').addEventListener('change',e=>{const cfg=DIFFICULTIES[e.target.value]||DIFFICULTIES.standard;document.getElementById('difficultyDescription').textContent=cfg.description;updateTitleSettingsSummary();});
   document.getElementById('pauseTitleButton').addEventListener('click',()=>pauseAction('title'));
